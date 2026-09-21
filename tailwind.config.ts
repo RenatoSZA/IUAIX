@@ -9,23 +9,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        royal: {
-          DEFAULT: '#0f3cc9',
-          dark: '#0a237a',
-          light: '#3d63e0'
-        },
-        brutal: {
-          black: '#0f172a'
-        }
-      },
-      fontFamily: {
-        sans: ['var(--font-space-grotesk)', 'sans-serif'],
+        royal: '#0F3CC9',
+        'brutal-black': '#0f172a', // Mantido para compatibilidade, mas usado de forma mais leve
       },
       boxShadow: {
-        'brutal': '4px 4px 0px 0px rgba(15, 60, 201, 1)',
-        'brutal-dark': '4px 4px 0px 0px rgba(15, 23, 42, 1)',
-        'brutal-sm': '2px 2px 0px 0px rgba(15, 23, 42, 1)',
-      }
+        // Legado Brutalista
+        'brutal': '8px 8px 0px #0f3cc9',
+        'brutal-sm': '4px 4px 0px #0f172a',
+        'brutal-dark': '8px 8px 0px #0f172a',
+        
+        // Novos Shadows Minimalistas (Clean & Agradável)
+        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.03)',
+        'soft-md': '0 8px 30px -4px rgba(0, 0, 0, 0.05)',
+        'soft-lg': '0 16px 40px -6px rgba(15, 60, 201, 0.08)',
+        'soft-inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)',
+      },
     },
   },
   plugins: [],
