@@ -9,7 +9,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "IUAIX | DaaS Enterprise",
+  title: "IUAIX",
   description: "Plataforma Enterprise de Infraestrutura Criativa (DaaS)",
 };
 
