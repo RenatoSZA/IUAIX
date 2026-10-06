@@ -19,6 +19,7 @@ function WorkspaceChat() {
   const [jobContext, setJobContext] = useState<any>(null);
   const [inputMsg, setInputMsg] = useState("");
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+  const [showClientReviewModal, setShowClientReviewModal] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [hoveredStar, setHoveredStar] = useState(0);
   const [selectedStar, setSelectedStar] = useState(0);
@@ -65,6 +66,12 @@ function WorkspaceChat() {
     channel.on('broadcast', { event: 'new-message' }, (payload: any) => {
       // Recebe mensagem do outro usuário via WebSocket instantâneo
       setMessages((prev) => [...prev, payload.payload]);
+    }).subscribe();
+
+    channel.on('broadcast', { event: 'job-updated' }, (payload: any) => {
+      if (payload.payload?.job) {
+        setJobContext(payload.payload.job);
+      }
     }).subscribe();
 
     return () => {
@@ -190,12 +197,28 @@ function WorkspaceChat() {
         </div>
 
         <div className="flex gap-4">
-          {role === 'criativo' && (
+          {role === 'criativo' && jobContext?.status !== 'reviewing' && jobContext?.status !== 'completed' && (
             <button 
               onClick={() => setShowDeliveryModal(true)}
-              className="hidden md:flex bg-yellow-300 border-4 border-brutal-black px-6 py-2 font-black uppercase text-sm hover:bg-yellow-400 transition-colors shadow-brutal-sm items-center gap-2"
+              className="hidden md:flex bg-green-500 text-white border-4 border-brutal-black px-6 py-2 font-black uppercase text-sm hover:bg-green-600 transition-colors shadow-brutal-sm items-center gap-2"
             >
               Entregar Job Final
+            </button>
+          )}
+          {role === 'criativo' && jobContext?.status === 'reviewing' && (
+            <div className="hidden md:flex bg-gray-300 text-gray-700 border-4 border-brutal-black px-6 py-2 font-black uppercase text-sm items-center gap-2">
+              Waiting...
+            </div>
+          )}
+          {role === 'empresa' && (
+            <button 
+              onClick={() => setShowClientReviewModal(true)}
+              className="relative hidden md:flex bg-green-500 text-white border-4 border-brutal-black px-6 py-2 font-black uppercase text-sm hover:bg-green-600 transition-colors shadow-brutal-sm items-center gap-2"
+            >
+              Ver Entrega
+              {jobContext?.status === 'reviewing' && (
+                <span className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full border-2 border-brutal-black animate-pulse"></span>
+              )}
             </button>
           )}
         </div>
@@ -471,19 +494,28 @@ function WorkspaceChat() {
                        body: formData
                      });
 
-                     if (res.ok) {
-                       alert("Arquivo salvo e Certificado gerado com sucesso!");
-                       setShowDeliveryModal(false);
-                       
-                       // Dispara mensagem automática no chat informando o cliente
-                       const systemMsg = "Trabalho final entregue. O documento de direitos autorais foi gerado e você tem até 48 horas para aprovar.";
-                       setMessages((prev) => [...prev, { id: Date.now(), text: systemMsg, sender: "system", time: "Agora" }]);
-                       
-                       supabase.channel(`job-${jobId}`).send({
-                         type: 'broadcast', event: 'new-message',
-                         payload: { id: Date.now(), text: systemMsg, sender: "system", time: new Date().toLocaleTimeString() }
-                       });
-                     } else {
+                                            if (res.ok) {
+                         const jsonRes = await res.json();
+                         alert("Arquivo salvo e Certificado gerado com sucesso!");
+                         setShowDeliveryModal(false);
+                         if (jsonRes.job) setJobContext(jsonRes.job);
+                         
+                         // Dispara mensagem automática no chat informando o cliente
+                         const systemMsg = "Trabalho final entregue. O documento de direitos autorais foi gerado e você tem até 48 horas para aprovar.";
+                         setMessages((prev) => [...prev, { id: Date.now(), text: systemMsg, sender: "system", time: "Agora" }]);
+                         
+                         supabase.channel(`job-${jobId}`).send({
+                           type: 'broadcast', event: 'new-message',
+                           payload: { id: Date.now(), text: systemMsg, sender: "system", time: new Date().toLocaleTimeString() }
+                         });
+
+                         if (jsonRes.job) {
+                           supabase.channel(`job-${jobId}`).send({
+                             type: 'broadcast', event: 'job-updated',
+                             payload: { job: jsonRes.job }
+                           });
+                         }
+                       } else {
                        alert("Erro ao salvar arquivo.");
                      }
                    } catch(e) {
@@ -493,6 +525,75 @@ function WorkspaceChat() {
                  className="bg-green-500 text-brutal-black px-8 py-4 font-black uppercase text-lg border-4 border-brutal-black shadow-[4px_4px_0px_#0f172a] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all flex items-center gap-2"
                >
                  <Fingerprint size={20} /> Assinar e Entregar
+               </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+
+      {/* MODAL DO CLIENTE: REVISÃO DA ENTREGA */}
+      {showClientReviewModal && (
+        <div className="fixed inset-0 bg-brutal-black/90 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-2xl border-4 border-white shadow-[16px_16px_0px_#22c55e] flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+            
+            <div className="bg-brutal-black text-white p-6 border-b-4 border-white flex justify-between items-center">
+               <div className="flex items-center gap-3">
+                 <ShieldCheck size={28} className="text-green-400" />
+                 <h2 className="text-2xl font-black uppercase tracking-widest">Revisão da Entrega</h2>
+               </div>
+               <button onClick={() => setShowClientReviewModal(false)} className="text-gray-400 hover:text-white transition-colors">
+                 Fechar
+               </button>
+            </div>
+
+            <div className="p-8 overflow-y-auto">
+               <p className="font-bold text-gray-600 mb-8">
+                 O profissional entregou os arquivos finais. Por favor, revise o material.
+               </p>
+
+               {jobContext?.finalAssetUrl ? (
+                 <div className="border-4 border-brutal-black p-6 bg-gray-50 flex items-center justify-between mb-8 hover:bg-gray-100 transition-colors">
+                   <div className="flex items-center gap-4">
+                     <FileText size={32} className="text-royal" />
+                     <div>
+                       <h4 className="font-black uppercase text-lg">Arquivo Final</h4>
+                       <a href={jobContext.finalAssetUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-blue-600 hover:underline">
+                         Clique para baixar/visualizar
+                       </a>
+                     </div>
+                   </div>
+                 </div>
+               ) : (
+                 <div className="mb-8 font-bold text-gray-500">Nenhum arquivo encontrado. (O profissional pode não ter enviado o arquivo pela plataforma corretamente).</div>
+               )}
+            </div>
+
+            <div className="p-6 border-t-4 border-brutal-black bg-gray-100 flex justify-end gap-4">
+               <button 
+                 onClick={() => {
+                   setShowClientReviewModal(false);
+                   setJobContext((prev) => ({ ...prev, status: 'in_progress' }));
+                   const sysMsg = "O cliente solicitou mudanças na entrega. Por favor, revise e envie novamente.";
+                   setMessages((prev) => [...prev, { id: Date.now(), text: sysMsg, sender: "system", time: new Date().toLocaleTimeString() }]);
+                   supabase.channel(`job-${jobId}`).send({
+                     type: 'broadcast', event: 'new-message',
+                     payload: { id: Date.now(), text: sysMsg, sender: "system", time: new Date().toLocaleTimeString() }
+                   });
+                 }}
+                 className="px-6 py-4 font-black uppercase border-4 border-brutal-black hover:bg-yellow-300 transition-colors bg-white"
+               >
+                 Pedir Mudança
+               </button>
+               <button 
+                 onClick={() => {
+                   setShowClientReviewModal(false);
+                   setShowRatingModal(true);
+                 }}
+                 className="bg-green-500 text-white px-8 py-4 font-black uppercase text-lg border-4 border-brutal-black shadow-[4px_4px_0px_#0f172a] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all flex items-center gap-2"
+               >
+                 <CheckCircle2 size={20} /> Confirmar Entrega
                </button>
             </div>
 
