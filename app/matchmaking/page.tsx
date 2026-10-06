@@ -76,9 +76,19 @@ const PROFESSIONALS_POOL = [
 ];
 
 const JOB_REQUESTS = [
-  { id: 'Criação de Logo', label: 'Criação de Logo', tokens: 5, desc: 'Identidade visual do zero.' },
-  { id: 'Edição de Vídeo', label: 'Edição de Vídeo', tokens: 3, desc: 'Reels e vídeos institucionais.' },
-  { id: 'UI Design', label: 'UI Design', tokens: 4, desc: 'Interfaces e Landing Pages.' }
+  { id: 'Criação de Logo', label: 'Criação de Logo', tokens: 5, desc: 'Marca base e conceito criativo do zero.' },
+  { id: 'Identidade Visual', label: 'Identidade Visual', tokens: 8, desc: 'Manual da marca, aplicações, paleta e tipografia.' },
+  { id: 'UI/UX Design', label: 'UI/UX Design', tokens: 6, desc: 'Interfaces de aplicativos e Landing Pages.' },
+  { id: 'Web Design', label: 'Web Design', tokens: 5, desc: 'Design de sites e portais institucionais.' },
+  { id: 'Social Media', label: 'Social Media', tokens: 3, desc: 'Posts, carrosséis e stories para redes sociais.' },
+  { id: 'Edição de Vídeo', label: 'Edição de Vídeo', tokens: 4, desc: 'Cortes, color grading para YouTube e Reels.' },
+  { id: 'Motion Graphics', label: 'Motion Graphics', tokens: 5, desc: 'Animações, vinhetas e letterings animados.' },
+  { id: 'Design Gráfico', label: 'Design Gráfico', tokens: 3, desc: 'Banners, flyers, cartões de visita e impressos.' },
+  { id: 'Ilustração', label: 'Ilustração', tokens: 6, desc: 'Ilustrações exclusivas, vetores e mascotes.' },
+  { id: 'Apresentação Corporativa', label: 'Pitch Deck', tokens: 4, desc: 'Apresentações de impacto e propostas comerciais.' },
+  { id: 'Design 3D', label: 'Design 3D', tokens: 10, desc: 'Modelagem de produto, cenários e renderização.' },
+  { id: 'Copywriting', label: 'Copywriting', tokens: 3, desc: 'Textos persuasivos, roteiros e slogans.' },
+  { id: 'Topa Tudo', label: 'Topa Tudo', tokens: 5, desc: 'Perfil generalista: ataca problemas de múltiplos ângulos.' }
 ];
 
 function MatchmakingContent() {
@@ -382,7 +392,7 @@ function MatchmakingContent() {
                         <Zap size={18} className="text-yellow-600" /> Análise da IA Orçamentista:
                       </h4>
                       <p className="font-bold text-sm text-gray-700 bg-white p-4 border-2 border-brutal-black">
-                        "{pricingData.reasoning}"
+                        &quot;{pricingData.reasoning}&quot;
                       </p>
                       <div className="mt-4 flex gap-4">
                         <span className="bg-brutal-black text-white px-3 py-1 text-xs font-black uppercase">
@@ -516,7 +526,7 @@ function MatchmakingContent() {
                   <span className="text-royal">{matchedPro.name}</span> alocado!
                 </h2>
                 <p className="font-bold text-gray-600 max-w-xl text-lg mb-6">
-                  Nossa IA localizou este profissional com <strong className="text-brutal-black uppercase bg-yellow-300 px-1 border-b-2 border-brutal-black">Score de {matchScore}/100</strong> para a tag "{selectedJob}". O Escrow já está garantindo a operação.
+                  Nossa IA localizou este profissional com <strong className="text-brutal-black uppercase bg-yellow-300 px-1 border-b-2 border-brutal-black">Score de {matchScore}/100</strong> para a tag &quot;{selectedJob}&quot;. O Escrow já está garantindo a operação.
                 </p>
 
                 <div className="flex flex-wrap items-center gap-4">

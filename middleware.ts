@@ -1,3 +1,4 @@
+import { getJwtSecret } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
@@ -15,7 +16,7 @@ export async function middleware(request: NextRequest) {
 
   if (token) {
     try {
-      const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_for_dev_only');
+      const JWT_SECRET = getJwtSecret();
       const { payload } = await jwtVerify(token, JWT_SECRET);
       verifiedRole = payload.role as string;
     } catch (err) {

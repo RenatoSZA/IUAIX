@@ -16,6 +16,7 @@ model User {
   role      String   @default("empresa") // "empresa", "criativo", "admin"
   rank      String   @default("novato") // "novato", "veterano" (Sistema de Apadrinhamento)
   tokens    Int      @default(0)
+  profilePic String? // Foto de Perfil (Base64 ou URL)
   
   // Sistema de Avaliação (SLA & Rating)
   ratingScore  Float @default(5.0)
@@ -35,6 +36,9 @@ model User {
   // Sistema de Auditoria de Entrada (Forensics)
   portfolioUrl  String?
   accountStatus String   @default("active") // pending_vetting, active, rejected
+
+  // Matchmaking Ativo
+  activeCategories String @default("") // Categorias que o criativo topa no momento
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -101,6 +105,8 @@ model Job {
 model Message {
   id        String   @id @default(cuid())
   content   String
+  mediaUrl  String?
+  mediaType String?
   jobId     String
   job       Job      @relation(fields: [jobId], references: [id])
   senderId  String

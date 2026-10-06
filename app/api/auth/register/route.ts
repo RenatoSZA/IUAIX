@@ -1,3 +1,4 @@
+import { getJwtSecret } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
@@ -22,7 +23,7 @@ const registerSchema = z.object({
   document: z.string().optional()
 });
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_for_dev_only');
+const JWT_SECRET = getJwtSecret();
 
 export async function POST(request: Request) {
   try {

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { ArrowLeft, ArrowRight, Paperclip, Send, AlertTriangle, Fingerprint, Search, ShieldCheck, CheckCircle2, FileText, Database, FolderSync, Star, X, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect } from 'react';
@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { supabase } from '@/lib/supabase';
 
-export default function WorkspaceChat() {
+function WorkspaceChat() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const jobId = searchParams.get('id') || 'demo-job-123'; // Puxa o ID real da URL, cai pro demo caso acesse direto
@@ -22,6 +22,8 @@ export default function WorkspaceChat() {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [hoveredStar, setHoveredStar] = useState(0);
   const [selectedStar, setSelectedStar] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Busca usuário real da API segura em vez de confiar no LocalStorage apenas
@@ -42,7 +44,9 @@ export default function WorkspaceChat() {
             id: m.id,
             text: m.content,
             sender: m.senderId === userData.user.id ? 'client' : 'pro',
-            time: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            time: new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            mediaUrl: m.mediaUrl,
+            mediaType: m.mediaType
           }));
           setMessages(formattedMsgs);
           if (data.job) {
@@ -66,11 +70,66 @@ export default function WorkspaceChat() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [router]);
+  }, [router, jobId]);
 
   if (!role) {
     return <div className="min-h-screen bg-gray-100 flex items-center justify-center font-black uppercase text-xl">Conectando WebSockets...</div>;
   }
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error('Falha no upload');
+      const data = await res.json();
+      
+      if (data.url) {
+        const newMessage = {
+          id: Date.now(),
+          text: `Arquivo enviado: ${file.name}`,
+          mediaUrl: data.url,
+          mediaType: file.type,
+          sender: "client",
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        setMessages((prev) => [...prev, newMessage]);
+
+        supabase.channel(`job-${jobId}`).send({
+          type: 'broadcast',
+          event: 'new-message',
+          payload: { ...newMessage, sender: "pro" }
+        });
+
+        await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            jobId: jobId, 
+            content: `Arquivo enviado: ${file.name}`,
+            mediaUrl: data.url,
+            mediaType: file.type
+          })
+        });
+      }
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      alert('Erro ao enviar arquivo.');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const handleSend = async () => {
     if (!inputMsg.trim()) return;
@@ -217,14 +276,25 @@ export default function WorkspaceChat() {
                     </span>
                   </div>
                 ) : (
-                  <div className={`max-w-[85%] lg:max-w-[70%] border-4 border-brutal-black p-4 relative ${
-                    msg.sender === 'client' ? 'bg-royal text-white shadow-[-4px_4px_0px_#0f172a]' : 'bg-white text-brutal-black shadow-[4px_4px_0px_#0f172a]'
-                  }`}>
-                    <p className="font-bold text-sm md:text-base leading-relaxed">{msg.text}</p>
-                    <span className={`text-[10px] font-black uppercase tracking-widest absolute -bottom-5 ${msg.sender === 'client' ? 'right-0 text-gray-500' : 'left-0 text-gray-500'}`}>
-                      {msg.time}
-                    </span>
-                  </div>
+                    <div className={`max-w-[85%] lg:max-w-[70%] border-4 border-brutal-black p-4 relative ${
+                      msg.sender === 'client' ? 'bg-royal text-white shadow-[-4px_4px_0px_#0f172a]' : 'bg-white text-brutal-black shadow-[4px_4px_0px_#0f172a]'
+                    }`}>
+                      {msg.mediaUrl && (
+                        <div className="mb-2">
+                          {msg.mediaType?.startsWith('image/') ? (
+                            <img src={msg.mediaUrl} alt="Anexo" className="max-w-full h-auto border-2 border-brutal-black rounded" />
+                          ) : (
+                            <a href={msg.mediaUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 underline text-sm">
+                              <FileText size={16} /> Ver Arquivo Anexado
+                            </a>
+                          )}
+                        </div>
+                      )}
+                      <p className="font-bold text-sm md:text-base leading-relaxed">{msg.text}</p>
+                      <span className={`text-[10px] font-black uppercase tracking-widest absolute -bottom-5 ${msg.sender === 'client' ? 'right-0 text-gray-500' : 'left-0 text-gray-500'}`}>
+                        {msg.time}
+                      </span>
+                    </div>
                 )}
               </div>
             ))}
@@ -233,8 +303,19 @@ export default function WorkspaceChat() {
           {/* Area de Input B2B */}
           <div className="p-4 bg-white border-t-4 border-brutal-black">
             <div className="flex items-end gap-4">
-              <button className="p-4 bg-gray-100 border-4 border-brutal-black hover:bg-yellow-300 transition-colors shadow-brutal-sm">
-                <Paperclip size={24} />
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileUpload} 
+                className="hidden" 
+                accept="image/jpeg, image/png, image/webp, image/svg+xml, application/pdf"
+              />
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="p-4 bg-gray-100 border-4 border-brutal-black hover:bg-yellow-300 transition-colors shadow-brutal-sm disabled:opacity-50 flex items-center justify-center"
+              >
+                {isUploading ? <FolderSync className="animate-spin" size={24} /> : <Paperclip size={24} />}
               </button>
               
               <div className="flex-1 relative border-4 border-brutal-black shadow-brutal-sm bg-white focus-within:border-royal transition-colors">
@@ -420,5 +501,13 @@ export default function WorkspaceChat() {
       )}
 
     </div>
+  );
+}
+
+export default function WorkspaceChatPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-black uppercase text-xl">Carregando Chat...</div>}>
+      <WorkspaceChat />
+    </Suspense>
   );
 }

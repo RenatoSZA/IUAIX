@@ -147,7 +147,7 @@ export default function Home() {
             <ul className="space-y-4 mb-10 font-bold text-gray-700 bg-gray-50 p-6 border-2 border-brutal-black">
               <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Seleção Inteligente:</strong> O sistema analisa seu pedido e encontra o profissional qualificado na mesma hora.</li>
               <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Prazo Garantido:</strong> Entregas rápidas garantidas, variando de 2 a 48 horas.</li>
-              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Sem Mensalidades:</strong> Você compra pacotes de "Fichas" e gasta apenas no trabalho que solicitar.</li>
+              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Sem Mensalidades:</strong> Você compra pacotes de &quot;Fichas&quot; e gasta apenas no trabalho que solicitar.</li>
             </ul>
 
             <Link href="/matchmaking" className="w-full sm:w-auto self-start bg-white text-brutal-black border-4 border-brutal-black px-8 py-4 font-black uppercase tracking-widest text-sm hover:bg-yellow-400 transition-colors shadow-brutal-sm hover:-translate-y-1 hover:-translate-x-1 flex items-center justify-center gap-3">
@@ -207,7 +207,7 @@ export default function Home() {
             <CreditCard size={180} className="text-white opacity-10 absolute -right-10 -bottom-10 pointer-events-none" strokeWidth={1} />
             
             <div className="relative z-10 mb-8 max-w-2xl">
-              <h3 className="text-4xl font-black uppercase mb-4">Como funcionam as "Fichas"?</h3>
+              <h3 className="text-4xl font-black uppercase mb-4">Como funcionam as &quot;Fichas&quot;?</h3>
               <p className="font-bold text-gray-200 leading-relaxed text-lg mb-6">
                 Para evitar orçamentos surpresa, todo trabalho na plataforma custa um número fixo de fichas. Assim você sabe exatamente quanto vai gastar antes mesmo de começar.
               </p>

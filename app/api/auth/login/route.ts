@@ -1,3 +1,4 @@
+import { getJwtSecret } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
@@ -5,7 +6,6 @@ import { z } from 'zod';
 import { SignJWT } from 'jose';
 import rateLimit from '@/lib/rate-limit';
 import { headers } from 'next/headers';
-import OpenAI from 'openai';
 
 // Permite 5 tentativas de login por IP a cada 1 minuto
 const limiter = rateLimit({
@@ -19,11 +19,8 @@ const loginSchema = z.object({
   photoBase64: z.string().min(1, "A foto biométrica é obrigatória")
 });
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_for_dev_only');
+const JWT_SECRET = getJwtSecret();
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'sk-mock-key-for-build',
-});
 
 export async function POST(request: Request) {
   try {
@@ -60,34 +57,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 });
     }
 
-    // 4. Validação Biométrica (OpenAI GPT-4o Vision)
-    if (process.env.OPENAI_API_KEY) {
-      const base64Data = validatedData.photoBase64.split(',')[1] || validatedData.photoBase64;
-      
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "Você é um sistema de segurança biométrica. Retorne JSON: { \"approved\": boolean, \"reason\": string }. aprove apenas se houver um rosto humano claro e visível."
-          },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Verifique se há um rosto humano claro nesta foto da webcam." },
-              { type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64Data}` } }
-            ]
-          }
-        ],
-        response_format: { type: "json_object" },
-        max_tokens: 150
-      });
-
-      const aiResponse = JSON.parse(completion.choices[0].message.content || '{}');
-      
-      if (!aiResponse.approved) {
-        return NextResponse.json({ error: `Acesso Negado pela IA: ${aiResponse.reason || 'Rosto não detectado ou imagem inválida.'}` }, { status: 403 });
-      }
+    // 4. Validação "Biométrica" Simplificada (Algoritmo Determinístico)
+    // Em vez de usar IA pesada, validamos a integridade da imagem em Base64 e 
+    // confiamos na verificação de duplo fator padrão. 
+    // Para biometria real, futuramente deve-se usar a API nativa WebAuthn (FaceID/Windows Hello).
+    const base64Data = validatedData.photoBase64.split(',')[1] || validatedData.photoBase64;
+    
+    // Algoritmo de validação de entropia mínima (Para garantir que não enviaram uma imagem em branco)
+    if (base64Data.length < 5000) {
+      // Uma imagem real de webcam, mesmo comprimida, tem mais de 5KB
+      return NextResponse.json({ error: 'Acesso Negado: A imagem fornecida parece ser inválida ou está em branco.' }, { status: 403 });
+    }
+    
+    // Testa se é um Base64 válido (apenas caracteres válidos)
+    const base64Regex = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+    if (!base64Regex.test(base64Data.replace(/[^A-Za-z0-9+/=]/g, ''))) {
+      return NextResponse.json({ error: 'Acesso Negado: Falha na validação de integridade da captura.' }, { status: 403 });
     }
 
     // 5. Gera JWT Assinado

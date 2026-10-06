@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import prisma from '@/lib/prisma';
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(request: Request) {
   try {
@@ -24,41 +21,68 @@ export async function POST(request: Request) {
       }
     }
 
-    const systemPrompt = `Você é um precificador algorítmico da IUAIX, uma plataforma de DaaS (Design as a Service).
-Seu objetivo é ler o pedido de um cliente e calcular um orçamento justo de mercado em Reais (BRL).
-Considere o grau de dificuldade/complexidade do pedido e o prazo de entrega.
-Prazos muito curtos (24h-48h) devem obrigatoriamente incluir uma taxa de urgência (rush fee) que eleva o preço em 30 a 50%.
-Jobs extremamente complexos ou que exigem múltiplos formatos cobram acima da média.
-Responda EXATAMENTE com um objeto JSON neste formato puro (sem crases de formatação markdown):
-{
-  "estimatedPriceBRL": 1500,
-  "complexity": "Alta",
-  "reasoning": "Sua justificativa clara e direta para o cliente sobre como você chegou a esse valor, mencionando o impacto do prazo e os padrões atuais de mercado."
-}`;
-
-    const userPrompt = `Categoria do Job: ${title}\nPrazo de Entrega Solicitado: ${deadline}\n\nBriefing do Cliente:\n${briefing}${vaultContext}`;
-
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash',
-      generationConfig: { responseMimeType: "application/json" }
-    });
+    // NOVO ALGORITMO DE PRECIFICAÇÃO (Substitui Gemini)
+    // Calcula o orçamento baseando-se em palavras-chave do título/briefing e no prazo.
+    const combinedText = (title + " " + briefing).toLowerCase();
     
-    const result = await model.generateContent(`${systemPrompt}\n\n${userPrompt}`);
-    const text = result.response.text();
+    let basePrice = 500; // Preço mínimo padrão
+    let complexity = "Baixa";
+    let reasoning = "Preço base de tabela.";
+
+    // 1. Análise de Complexidade por Palavras-Chave
+    if (combinedText.includes('3d') || combinedText.includes('animação') || combinedText.includes('motion') || combinedText.includes('sistema completo') || combinedText.includes('app')) {
+      basePrice = 2500;
+      complexity = "Alta";
+      reasoning = "Serviços avançados (como 3D, animação ou apps completos) exigem maior carga horária e profissionais altamente especializados.";
+    } else if (combinedText.includes('landing page') || combinedText.includes('identidade visual') || combinedText.includes('rebranding') || combinedText.includes('ui/ux') || combinedText.includes('site')) {
+      basePrice = 1200;
+      complexity = "Média";
+      reasoning = "O desenvolvimento de identidades completas ou páginas web envolve pesquisa estrutural e design estratégico, ajustando-se à média de mercado.";
+    } else if (combinedText.includes('logo') || combinedText.includes('post') || combinedText.includes('banner') || combinedText.includes('flyer')) {
+      basePrice = 300;
+      complexity = "Baixa";
+      reasoning = "Peças gráficas unitárias ou pontuais possuem um fluxo de aprovação mais rápido e escopo fechado.";
+    }
+
+    // 2. Análise de Prazo (Rush Fee)
+    const deadlineLower = deadline.toLowerCase();
+    let rushFeeMultiplier = 1.0;
+    let urgencyText = "";
+
+    if (deadlineLower.includes('24h') || deadlineLower.includes('urgente') || deadlineLower.includes('hoje') || deadlineLower.includes('amanhã') || deadlineLower.includes('1 dia')) {
+      rushFeeMultiplier = 1.5; // +50%
+      urgencyText = " Foi adicionada uma taxa de urgência (50%) pelo prazo curtíssimo solicitado.";
+    } else if (deadlineLower.includes('48h') || deadlineLower.includes('2 dias')) {
+      rushFeeMultiplier = 1.3; // +30%
+      urgencyText = " Inclui taxa de aceleração (30%) para garantir a entrega em 48h.";
+    } else {
+      urgencyText = " O prazo está dentro do fluxo normal, sem taxas de urgência.";
+    }
+
+    const estimatedPriceBRL = Math.round(basePrice * rushFeeMultiplier);
     
-    // Limpa possíveis blocos markdown caso o modelo ignore o mimetype
-    const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const pricingData = JSON.parse(cleanText);
+    // 3. Adiciona peso se houver Brand Vault (Complexidade de conformidade)
+    if (vaultContext !== '') {
+      reasoning += " A presença de um Brand Vault estrito requer tempo extra de conformidade por parte do profissional.";
+    }
+
+    reasoning += urgencyText;
+
+    const pricingData = {
+      estimatedPriceBRL,
+      complexity,
+      reasoning
+    };
 
     return NextResponse.json(pricingData);
   } catch (error: any) {
     console.error('Erro na API de Precificação (Fallback Acionado):', error);
     
-    // Fallback gracioso caso a API falhe ou falte a key
+    // Fallback gracioso
     return NextResponse.json({
       estimatedPriceBRL: 800,
       complexity: "Média (Estimativa Base)",
-      reasoning: "Utilizamos uma precificação base de mercado devido a uma instabilidade temporária na chave do motor de IA."
+      reasoning: "Utilizamos uma precificação base de mercado devido a um erro no algoritmo orçamentista."
     });
   }
 }

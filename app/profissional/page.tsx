@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState, useEffect } from 'react';
 import { Zap, Clock, ShieldAlert, CheckCircle, ArrowRight, XCircle } from 'lucide-react';
 import Link from 'next/link';
@@ -20,7 +20,20 @@ export default function RadarOperacional() {
   }, [router]);
 
   const [timeLeft, setTimeLeft] = useState(180); // 3 minutos em segundos
-  const [status, setStatus] = useState<'ping' | 'accepted' | 'missed' | 'searching'>('searching');
+  const [status, setStatus] = useState<'config' | 'ping' | 'accepted' | 'missed' | 'searching'>('config');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const JOB_CATEGORIES = ['Criação de Logo', 'Identidade Visual', 'UI/UX Design', 'Web Design', 'Social Media', 'Edição de Vídeo', 'Motion Graphics', 'Design Gráfico', 'Ilustração', 'Pitch Deck', 'Design 3D', 'Copywriting', 'Topa Tudo'];
+  const toggleCategory = (cat: string) => { setSelectedCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]); };
+  const enterRadar = async () => { 
+    try { 
+      await fetch('/api/user/active-categories', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ categories: selectedCategories }) 
+      }); 
+    } catch(e) {} 
+    setStatus('searching'); 
+  };
   const [activeJob, setActiveJob] = useState<any>(null);
 
   // Busca jobs pendentes a cada 5 segundos enquanto estiver em "searching"
@@ -35,7 +48,7 @@ export default function RadarOperacional() {
           if (data.job) {
             setActiveJob(data.job);
             setStatus('ping');
-            setTimeLeft(180); // Reinicia o cronômetro para o novo job
+            setTimeLeft(180); // Reinicia o cronÃ´metro para o novo job
           }
         }
       } catch (e) {
@@ -48,7 +61,7 @@ export default function RadarOperacional() {
     return () => clearInterval(interval);
   }, [status]);
 
-  // Lógica do cronômetro
+  // LÃ³gica do cronÃ´metro
   useEffect(() => {
     if (status !== 'ping') return;
     
@@ -88,11 +101,11 @@ export default function RadarOperacional() {
         setStatus('missed');
       }
     } catch(e) {
-      alert('Erro de conexão ao aceitar trabalho.');
+      alert('Erro de conexÃ£o ao aceitar trabalho.');
     }
   };
 
-  // Movi o early return para o fim, após todas as declarações de Hooks, para respeitar as regras do React.
+  // Movi o early return para o fim, apÃ³s todas as declaraÃ§Ãµes de Hooks, para respeitar as regras do React.
   if (!isAuthorized) return <div className="min-h-screen bg-brutal-black flex items-center justify-center text-white font-black uppercase text-xl">Inicializando Radar...</div>;
 
   return (
@@ -105,6 +118,34 @@ export default function RadarOperacional() {
       </div>
 
       <div className="w-full max-w-2xl relative">
+                {/* Estado Configuração Inicial */}
+        {status === 'config' && (
+          <div className="bg-white text-brutal-black border-4 border-brutal-black shadow-[16px_16px_0px_#0F3CC9] animate-in zoom-in-95 p-8 md:p-12 mb-8">
+            <h2 className="text-3xl font-black uppercase mb-4">Em quais áreas você atuará hoje?</h2>
+            <p className="font-bold text-gray-600 mb-8 uppercase text-sm">Selecione as categorias que deseja receber no radar agora. Esta seleção ajuda a IA a enviar os jobs certos para o momento.</p>
+            
+            <div className="flex flex-wrap gap-3 mb-10">
+              {JOB_CATEGORIES.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => toggleCategory(cat)}
+                  className={`px-4 py-2 border-4 font-black uppercase text-xs transition-colors shadow-brutal-sm hover:translate-y-1 hover:translate-x-1 hover:shadow-none ${selectedCategories.includes(cat) ? 'bg-royal text-white border-brutal-black' : 'bg-gray-100 text-gray-500 border-gray-300'}`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            <button 
+              onClick={enterRadar}
+              disabled={selectedCategories.length === 0}
+              className="w-full bg-brutal-black text-white px-6 py-4 font-black uppercase tracking-widest hover:bg-yellow-300 hover:text-brutal-black transition-colors disabled:opacity-50 border-4 border-transparent"
+            >
+              Ligar Radar de Demanda
+            </button>
+          </div>
+        )}
+
         {/* Estado 0: Searching */}
         {status === 'searching' && (
           <div className="flex flex-col items-center text-center animate-pulse">
@@ -114,24 +155,24 @@ export default function RadarOperacional() {
           </div>
         )}
 
-        {/* Estado 1: Ping do Radar (Decisão Rápida) */}
+        {/* Estado 1: Ping do Radar (DecisÃ£o RÃ¡pida) */}
         {status === 'ping' && activeJob && (
           <div className="bg-white text-brutal-black border-4 border-white shadow-[16px_16px_0px_#0F3CC9] animate-in zoom-in-95 duration-500 overflow-hidden relative">
             
-            {/* Overlay de Urgência (Pulso Vermelho se < 30s) */}
+            {/* Overlay de UrgÃªncia (Pulso Vermelho se < 30s) */}
             <div className={`absolute top-0 left-0 w-full h-2 ${timeLeft < 30 ? 'bg-red-600 animate-pulse' : 'bg-royal'}`}></div>
 
             <div className="p-8 md:p-12">
               <div className="flex justify-between items-start mb-8">
                 <div>
                   <span className="bg-yellow-300 px-3 py-1 font-black uppercase text-xs border-2 border-brutal-black mb-4 inline-block shadow-brutal-sm">
-                    Nova Alocação via IA
+                    Nova AlocaÃ§Ã£o via IA
                   </span>
                   <h2 className="text-4xl md:text-5xl font-black uppercase leading-tight mb-2">{activeJob.title}</h2>
                   <p className="font-bold text-gray-500 uppercase tracking-widest text-sm line-clamp-2">{activeJob.description}</p>
                 </div>
                 
-                {/* Cronômetro */}
+                {/* CronÃ´metro */}
                 <div className={`flex flex-col items-end ${timeLeft < 30 ? 'text-red-600' : 'text-brutal-black'}`}>
                   <div className="flex items-center gap-2 font-black text-3xl">
                     <Clock size={28} />
@@ -157,7 +198,7 @@ export default function RadarOperacional() {
                   onClick={handleAccept}
                   className="flex-1 bg-royal text-white px-6 py-4 font-black uppercase tracking-widest hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-brutal-sm hover:translate-y-1 hover:translate-x-1 hover:shadow-none"
                 >
-                  <CheckCircle size={20} /> Aceitar Operação
+                  <CheckCircle size={20} /> Aceitar OperaÃ§Ã£o
                 </button>
                 <button 
                   onClick={() => setStatus('missed')}
@@ -175,7 +216,7 @@ export default function RadarOperacional() {
           <div className="bg-green-500 text-white border-4 border-green-500 p-12 text-center animate-in slide-in-from-bottom-10">
             <CheckCircle size={80} className="mx-auto mb-6" />
             <h2 className="text-4xl font-black uppercase mb-4">Contrato Firmado!</h2>
-            <p className="font-bold text-green-100 mb-8 tracking-widest uppercase">Redirecionando para a Sala de Produção...</p>
+            <p className="font-bold text-green-100 mb-8 tracking-widest uppercase">Redirecionando para a Sala de ProduÃ§Ã£o...</p>
           </div>
         )}
 
@@ -184,7 +225,7 @@ export default function RadarOperacional() {
           <div className="bg-gray-900 border-4 border-gray-800 p-12 text-center animate-in slide-in-from-bottom-10">
             <XCircle size={80} className="mx-auto mb-6 text-gray-600" />
             <h2 className="text-4xl font-black uppercase text-white mb-4">Oportunidade Perdida</h2>
-            <p className="font-bold text-gray-500 mb-8 tracking-widest uppercase">Este job foi repassado para o próximo da fila.</p>
+            <p className="font-bold text-gray-500 mb-8 tracking-widest uppercase">Este job foi repassado para o prÃ³ximo da fila.</p>
             <button 
               onClick={() => {
                 setStatus('searching');
@@ -200,8 +241,13 @@ export default function RadarOperacional() {
       </div>
 
       <div className="absolute bottom-6 text-center text-gray-600 text-xs font-bold uppercase tracking-widest">
-        Iuaix DaaS • Matchmaking Ativo
+        Iuaix DaaS â€¢ Matchmaking Ativo
       </div>
     </div>
   );
 }
+
+
+
+
+

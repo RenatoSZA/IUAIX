@@ -80,7 +80,7 @@ export default function AdminDashboard() {
               <div className="mb-6">
                 <p className="font-bold text-sm mb-2">Motivo da Abertura:</p>
                 <div className="bg-gray-100 border-2 border-gray-300 p-4 font-mono text-xs">
-                  "Profissional entregou a tela fora da paleta do Brand Vault e não responde há 12 horas. Solicito rollback do Escrow ou troca de célula."
+                  &quot;Profissional entregou a tela fora da paleta do Brand Vault e não responde há 12 horas. Solicito rollback do Escrow ou troca de célula.&quot;
                 </div>
               </div>
 

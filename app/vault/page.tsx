@@ -377,7 +377,7 @@ export default function BrandVault() {
 
               {/* Regras de Ouro (Do's and Don'ts) */}
               <div className="mb-12 border-t-4 border-brutal-black pt-8">
-                <label className="block font-black uppercase text-gray-900 mb-6 text-xl">Regras de Ouro (Do's & Don'ts)</label>
+                <label className="block font-black uppercase text-gray-900 mb-6 text-xl">Regras de Ouro (Do&apos;s &amp; Don&apos;ts)</label>
                 <div className="space-y-3">
                   {brandData.rules.map((rule, idx) => (
                     <div key={idx} className={`flex items-start gap-3 p-4 border-4 border-brutal-black ${rule.type === 'do' ? 'bg-green-50' : 'bg-red-50'}`}>
@@ -404,7 +404,7 @@ export default function BrandVault() {
                        + Regra do que Fazer (DO)
                     </button>
                     <button className="flex-1 bg-gray-100 border-2 border-dashed border-red-600 text-red-700 py-3 font-bold uppercase text-sm hover:bg-red-100 transition-colors flex items-center justify-center gap-2">
-                       + O que Evitar (DON'T)
+                       + O que Evitar (DON&apos;T)
                     </button>
                   </div>
                 </div>

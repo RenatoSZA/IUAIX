@@ -1,3 +1,4 @@
+import { getJwtSecret } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
@@ -39,12 +40,12 @@ export async function POST(request: Request) {
     const token = cookies().get('iuaix_token')?.value;
     if (!token) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
 
-    const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_for_dev_only');
+    const JWT_SECRET = getJwtSecret();
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const userId = payload.sub as string;
 
     const body = await request.json();
-    const { jobId, content } = body;
+    const { jobId, content, mediaUrl, mediaType } = body;
 
     if (!jobId || !content) return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
 
@@ -52,7 +53,9 @@ export async function POST(request: Request) {
       data: {
         jobId,
         senderId: userId,
-        content
+        content,
+        mediaUrl,
+        mediaType
       },
       include: {
         sender: { select: { id: true, name: true, role: true } }

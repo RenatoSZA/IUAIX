@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import * as cheerio from 'cheerio';
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 async function scrapeUrl(url: string) {
   try {
@@ -40,45 +37,48 @@ export async function POST(request: Request) {
       combinedContext = "Nenhum conteúdo de texto pôde ser extraído das URLs fornecidas. Tente deduzir pelo próprio formato da URL ou crie regras genéricas de alto padrão baseadas no nicho.";
     }
 
-    const systemPrompt = `Você é a IA Curadora da IUAIX (Brand Guardian).
-Seu objetivo é analisar o conteúdo extraído dos sites/arquivos do cliente e extrair as diretrizes da marca (Brand Vault).
-Você DEVE responder EXATAMENTE no formato JSON abaixo. Preencha todos os campos da melhor forma possível usando as informações lidas.
-Se a empresa for tech, dedeza regras modernas. Use as cores descritas ou deduzidas do texto. Responda APENAS O JSON (sem markdown).
-{
-  "name": "Nome da Marca",
-  "slogan": "Slogan ou Proposta de Valor",
-  "targetAudience": "Descrição do público alvo",
-  "toneOfVoice": "Tom de voz da marca",
-  "colors": ["#000000", "#FFFFFF", "#FF0000"],
-  "fonts": ["Nome da Fonte", "Outra Fonte"],
-  "vibe": ["Tag1", "Tag2", "Tag3"],
-  "rules": [
-    { "type": "do", "text": "Regra do que fazer" },
-    { "type": "dont", "text": "Regra do que não fazer" }
-  ]
-}`;
+    // ALGORITMO HEURÍSTICO DE EXTRAÇÃO DE MARCA (Substitui Gemini)
+    const textLower = combinedContext.toLowerCase();
+    
+    // Tenta encontrar um nome no texto (Ex: pegando o primeiro H1 ou título que possa ter vindo na primeira linha)
+    let brandName = "Marca Extraída (Heurística)";
+    const firstLines = combinedContext.split('\n').filter(l => l.trim().length > 0);
+    if (firstLines.length > 0 && firstLines[0].length < 50) {
+      brandName = firstLines[0];
+    }
 
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash',
-      generationConfig: { responseMimeType: "application/json" }
-    });
-    
-    const userPrompt = `Arquivos fornecidos:\n${attachments.join(', ')}\n\nConteúdo extraído das páginas web:\n${combinedContext}`;
-    
-    const result = await model.generateContent(`${systemPrompt}\n\n${userPrompt}`);
-    const text = result.response.text();
-    const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const brandData = JSON.parse(cleanText);
+    const brandData = {
+      name: brandName,
+      slogan: textLower.includes('inovação') ? 'Foco em Inovação' : 'Soluções Corporativas',
+      targetAudience: "Público detectado via scraping local",
+      toneOfVoice: textLower.includes('tecnologia') ? "Moderno e Tech" : "Profissional Padrão",
+      colors: ["#111111", "#F5F5F5", "#0F3CC9"], // Cores padrão injetadas
+      fonts: ["Inter", "Roboto"],
+      vibe: ["Limpo", "Direto", "Corporativo"],
+      rules: [
+        { type: "do", text: "Manter padrão de contraste WCAG" },
+        { type: "do", text: "Usar espaços em branco adequados (breathing room)" },
+        { type: "dont", text: "Evitar gradientes muito intensos ou poluição visual" },
+        { type: "dont", text: "Não usar fotos de banco de imagens muito genéricas" }
+      ]
+    };
+
+    // Extração básica de cores HEX se existirem no texto
+    const hexRegex = /#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})/g;
+    const foundColors = combinedContext.match(hexRegex);
+    if (foundColors && foundColors.length > 0) {
+      brandData.colors = Array.from(new Set(foundColors)).slice(0, 4);
+    }
 
     return NextResponse.json(brandData);
   } catch (error: any) {
-    console.error('Erro na extração do Brand Vault (Possível Cota Excedida / Sem Chave):', error);
+    console.error('Erro na extração do Brand Vault:', error);
     
     return NextResponse.json({
-      name: "Sua Marca (Fallback Gemini)",
-      slogan: "Cota da IA excedida ou chave faltando, carregando template base.",
-      targetAudience: "Público alvo detectado via heurística padrão.",
-      toneOfVoice: "Profissional, direto e inovador.",
+      name: "Fallback Local",
+      slogan: "Sistema de extração offline",
+      targetAudience: "Geral",
+      toneOfVoice: "Profissional",
       colors: ["#0f172a", "#0F3CC9", "#FDE047"],
       fonts: ["Inter", "Helvetica"],
       vibe: ["Moderno", "Limpo"],

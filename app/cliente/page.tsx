@@ -133,7 +133,13 @@ export default function Cliente() {
                 </div>
                 <div className="flex items-center gap-3 bg-gray-50 p-3 border-2 border-gray-200">
                   <FileText size={18} className="text-royal" />
-                  <span className="font-bold text-xs uppercase">Acesso ao Brand Vault: Concedido</span>
+                  <div className="flex-1">
+                    <span className="font-bold text-xs uppercase block">Acesso ao Brand Vault</span>
+                    <span className="text-[10px] text-gray-500 font-bold uppercase">Ativo</span>
+                  </div>
+                  <Link href="/cliente/vault" className="text-[10px] font-black uppercase bg-brutal-black text-white px-3 py-1 hover:bg-royal transition-colors">
+                    Editar
+                  </Link>
                 </div>
               </div>
             </div>

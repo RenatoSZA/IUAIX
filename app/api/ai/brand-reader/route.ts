@@ -1,13 +1,9 @@
+import { getJwtSecret } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
-import OpenAI from 'openai';
 import prisma from '@/lib/prisma';
 
-// Inicializa a OpenAI (Fallback pra evitar crash se a chave não existir no .env)
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'sk-mock-key-for-build',
-});
 
 export async function POST(request: Request) {
   try {
@@ -15,7 +11,7 @@ export async function POST(request: Request) {
     const token = cookies().get('iuaix_token')?.value;
     if (!token) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
 
-    const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_for_dev_only');
+    const JWT_SECRET = getJwtSecret();
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const userId = payload.sub as string;
 
@@ -26,40 +22,57 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Contexto ausente' }, { status: 400 });
     }
 
-    let brandRulesJson;
+    // 2. EXTRAÇÃO HEURÍSTICA DE REGRAS (Substitui GPT-4o)
+    // O algoritmo tenta extrair informações usando palavras-chave comuns e regex simples.
+    const textLower = textContext.toLowerCase();
+    
+    let slogan = "Não identificado";
+    let targetAudience = "Público Geral";
+    let toneOfVoice = "Profissional Padrão";
+    const rules = [];
 
-    // Se não tivermos chave real configurada, retornamos um mock simulando a IA
-    if (!process.env.OPENAI_API_KEY) {
-      console.log('Simulando IA do Brand Vault (Modo Local)...');
-      await new Promise(resolve => setTimeout(resolve, 3000)); // Tempo da IA pensar
-      brandRulesJson = JSON.stringify({
-        slogan: "Slogan Extraído pela IA",
-        targetAudience: "Público detectado baseado no contexto...",
-        toneOfVoice: "Tom de voz profissional e direto.",
-        rules: [
-          { type: 'do', text: 'Usar fontes sem serifa' },
-          { type: 'dont', text: 'Não usar emojis em excesso' }
-        ]
-      });
-    } else {
-      // 2. Chamada Real para a Inteligência Artificial
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-          {
-            role: "system",
-            content: "Você é um Diretor de Arte Sênior. Analise o contexto da marca fornecido pelo usuário e retorne um JSON extrato com as seguintes chaves: 'slogan', 'targetAudience', 'toneOfVoice' e 'rules' (um array de objetos com 'type': 'do' ou 'dont' e 'text'). Apenas o JSON válido."
-          },
-          {
-            role: "user",
-            content: `Analise as referências desta marca: ${textContext}`
-          }
-        ],
-        response_format: { type: "json_object" }
-      });
-
-      brandRulesJson = completion.choices[0].message.content;
+    // Extração de Slogan
+    if (textLower.includes('slogan:')) {
+      slogan = textContext.split(/slogan:/i)[1].split('\n')[0].trim();
+    } else if (textLower.includes('frase de efeito:')) {
+      slogan = textContext.split(/frase de efeito:/i)[1].split('\n')[0].trim();
     }
+
+    // Extração de Público-Alvo
+    if (textLower.includes('público:')) {
+      targetAudience = textContext.split(/público:/i)[1].split('\n')[0].trim();
+    } else if (textLower.includes('target:')) {
+      targetAudience = textContext.split(/target:/i)[1].split('\n')[0].trim();
+    }
+
+    // Extração de Tom de Voz
+    if (textLower.includes('tom:')) {
+      toneOfVoice = textContext.split(/tom:/i)[1].split('\n')[0].trim();
+    }
+
+    // Extração Dinâmica de DO's e DONT's
+    const lines = textContext.split('\n');
+    for (const line of lines) {
+      const lineLower = line.toLowerCase();
+      if (lineLower.includes('nunca') || lineLower.includes('não usar') || lineLower.includes('evitar') || lineLower.includes("don't")) {
+        rules.push({ type: 'dont', text: line.replace(/^(?:[-*>]|nunca|não usar|evitar|don't)\s*/i, '').trim() });
+      } else if (lineLower.includes('sempre') || lineLower.includes('deve ter') || lineLower.includes('priorizar') || lineLower.includes('usar') || lineLower.includes('do')) {
+        rules.push({ type: 'do', text: line.replace(/^(?:[-*>]|sempre|deve ter|priorizar|usar|do)\s*/i, '').trim() });
+      }
+    }
+
+    // Fallbacks para caso o texto seja muito solto
+    if (rules.length === 0) {
+      rules.push({ type: 'do', text: 'Manter legibilidade e contraste adequado.' });
+      rules.push({ type: 'dont', text: 'Evitar poluição visual.' });
+    }
+
+    const brandRulesJson = JSON.stringify({
+      slogan,
+      targetAudience,
+      toneOfVoice,
+      rules: rules.slice(0, 10) // Limita a 10 regras
+    });
 
     // 3. Atualiza o Brand Vault no Banco de Dados
     if (vaultId) {

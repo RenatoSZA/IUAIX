@@ -1,3 +1,4 @@
+import { getJwtSecret } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { jwtVerify, SignJWT } from 'jose';
 import prisma from '@/lib/prisma';
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_for_dev_only');
+    const JWT_SECRET = getJwtSecret();
     
     // Decodifica o token de verificação
     const { payload } = await jwtVerify(token, JWT_SECRET);

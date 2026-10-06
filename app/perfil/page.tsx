@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, User, Link as LinkIcon, CheckCircle } from 'lucide-react';
+import { ArrowLeft, User, Link as LinkIcon, CheckCircle, Camera } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PerfilPage() {
@@ -9,6 +9,7 @@ export default function PerfilPage() {
   const [name, setName] = useState('');
   const [portfolioUrl, setPortfolioUrl] = useState('');
   const [role, setRole] = useState('');
+  const [profilePic, setProfilePic] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'saving' | 'success'>('idle');
 
   useEffect(() => {
@@ -19,12 +20,28 @@ export default function PerfilPage() {
           setName(data.user.name || '');
           setPortfolioUrl(data.user.portfolioUrl || '');
           setRole(data.user.role || '');
+          setProfilePic(data.user.profilePic || null);
         } else {
           router.push('/login');
         }
       })
       .catch(() => router.push('/login'));
   }, [router]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert('A imagem deve ter no máximo 2MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePic(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +50,7 @@ export default function PerfilPage() {
       const res = await fetch('/api/perfil', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, portfolioUrl })
+        body: JSON.stringify({ name, portfolioUrl, profilePic })
       });
       if (res.ok) {
         setStatus('success');
@@ -62,6 +79,31 @@ export default function PerfilPage() {
       <main className="max-w-2xl mx-auto p-6 mt-10">
         <form onSubmit={handleSave} className="bg-white border-4 border-brutal-black shadow-[8px_8px_0px_#0f172a] p-8 flex flex-col gap-6">
           
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-brutal-black bg-gray-100 flex items-center justify-center">
+              {profilePic ? (
+                <img src={profilePic} alt="Perfil" className="w-full h-full object-cover" />
+              ) : (
+                <User size={48} className="text-gray-400" />
+              )}
+            </div>
+            <div>
+              <input 
+                type="file" 
+                id="profilePicInput" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={handleFileChange}
+              />
+              <label 
+                htmlFor="profilePicInput"
+                className="cursor-pointer bg-brutal-black text-white px-4 py-2 font-black uppercase text-sm hover:bg-royal transition-colors flex items-center gap-2"
+              >
+                <Camera size={16} /> Alterar Foto
+              </label>
+            </div>
+          </div>
+
           <div>
             <label className="block font-black uppercase text-sm mb-2 flex items-center gap-2">
               <User size={16} /> Nome / Razão Social

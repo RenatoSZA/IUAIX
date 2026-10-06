@@ -1,3 +1,4 @@
+import { getJwtSecret } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
@@ -8,13 +9,13 @@ export async function GET(request: Request) {
     const token = cookies().get('iuaix_token')?.value;
     if (!token) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
 
-    const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_for_dev_only');
+    const JWT_SECRET = getJwtSecret();
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const userId = payload.sub as string;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { name: true, portfolioUrl: true, role: true }
+      select: { name: true, portfolioUrl: true, role: true, profilePic: true }
     });
 
     return NextResponse.json({ user });
@@ -32,11 +33,11 @@ export async function PUT(request: Request) {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const userId = payload.sub as string;
 
-    const { name, portfolioUrl } = await request.json();
+    const { name, portfolioUrl, profilePic } = await request.json();
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { name, portfolioUrl }
+      data: { name, portfolioUrl, profilePic }
     });
 
     return NextResponse.json({ success: true, user: updatedUser });

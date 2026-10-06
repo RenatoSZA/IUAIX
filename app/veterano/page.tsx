@@ -62,7 +62,7 @@ export default function VeteranoDashboard() {
                <BrainCircuit className="text-yellow-600 flex-shrink-0 mt-1" size={24} />
                <div>
                  <h4 className="font-black uppercase text-yellow-800 mb-1">Cuidado com Testes Cegos</h4>
-                 <p className="font-bold text-yellow-700 text-sm">A IA injeta portfólios "armadilha" (Testes Cegos) nesta fila. Aprovar um portfólio intencionalmente ruim resultará na perda dos seus privilégios de Veterano.</p>
+                 <p className="font-bold text-yellow-700 text-sm">A IA injeta portfólios &quot;armadilha&quot; (Testes Cegos) nesta fila. Aprovar um portfólio intencionalmente ruim resultará na perda dos seus privilégios de Veterano.</p>
                </div>
             </div>
 
@@ -112,7 +112,7 @@ export default function VeteranoDashboard() {
                   <h3 className="font-black uppercase text-2xl">Job #44A9 - Rebranding XYZ</h3>
                 </div>
                 <p className="font-bold text-gray-600 max-w-3xl text-sm">
-                  O cliente recusou a entrega alegando que "ficou ruim e sem sal". A IA analisou o arquivo e confirmou que 100% do Brand Vault e do Escopo Congelado foram respeitados tecnicamente. O profissional original foi liberado, o pagamento em Escrow foi retido parcialmente.
+                  O cliente recusou a entrega alegando que &quot;ficou ruim e sem sal&quot;. A IA analisou o arquivo e confirmou que 100% do Brand Vault e do Escopo Congelado foram respeitados tecnicamente. O profissional original foi liberado, o pagamento em Escrow foi retido parcialmente.
                 </p>
               </div>
               <button className="whitespace-nowrap bg-brutal-black text-white px-6 py-4 font-black uppercase border-4 border-brutal-black hover:bg-royal transition-colors shadow-[4px_4px_0px_#0f3cc9]">
