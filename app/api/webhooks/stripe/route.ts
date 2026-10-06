@@ -3,23 +3,20 @@ import Stripe from 'stripe';
 import prisma from '@/lib/prisma';
 import { headers } from 'next/headers';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-});
-
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
 export async function POST(request: Request) {
   const body = await request.text();
   const sig = headers().get('stripe-signature');
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   let event;
 
   try {
-    if (!sig || !endpointSecret) {
+    if (!sig || !endpointSecret || !process.env.STRIPE_SECRET_KEY) {
       // Em modo local/simulação, podemos não ter as chaves configuradas
       return NextResponse.json({ error: 'Faltam assinaturas de segurança' }, { status: 400 });
     }
     
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
     // Verifica criptograficamente se o evento veio mesmo da Stripe (Anti-Fraude)
     event = stripe.webhooks.constructEvent(body, sig, endpointSecret);
   } catch (err: any) {
