@@ -241,9 +241,10 @@ export default function Dashboard() {
                         <span className={`font-black text-[10px] uppercase px-2 py-0.5 border-2 border-brutal-black ${job.status === 'pending_accept' ? 'bg-yellow-300 text-brutal-black' : 'bg-green-500 text-brutal-black'}`}>
                           {job.status === 'active' ? 'Em Progresso' : job.status === 'reviewing' ? 'Em Revisão' : 'Aguardando Aceite'}
                         </span>
-                        <span className="text-gray-500 font-bold text-xs uppercase tracking-widest">{job.tokensValue} Tokens</span>
-                      </div>
-                      <h3 className="text-2xl font-black uppercase text-brutal-black truncate max-w-sm">{job.title}</h3>
+                        <span className="bg-gray-100 text-gray-500 font-bold text-[10px] uppercase px-2 py-0.5 border-2 border-gray-200">{job.title}</span>
+                          <span className="text-gray-500 font-bold text-xs uppercase tracking-widest">{job.tokensValue} Tokens</span>
+                        </div>
+                        <h3 className="text-xl font-black uppercase text-brutal-black truncate max-w-lg" title={job.description}>{job.description}</h3>
                       <p className="text-sm font-bold text-gray-500 mt-1">
                         {role === 'empresa' ? `Profissional: ${job.creative?.name}` : `Cliente: ${job.client?.name}`}
                       </p>

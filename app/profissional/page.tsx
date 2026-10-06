@@ -165,11 +165,17 @@ export default function RadarOperacional() {
             <div className="p-8 md:p-12">
               <div className="flex justify-between items-start mb-8">
                 <div>
-                  <span className="bg-yellow-300 px-3 py-1 font-black uppercase text-xs border-2 border-brutal-black mb-4 inline-block shadow-brutal-sm">
-                    Nova AlocaÃ§Ã£o via IA
-                  </span>
-                  <h2 className="text-4xl md:text-5xl font-black uppercase leading-tight mb-2">{activeJob.title}</h2>
-                  <p className="font-bold text-gray-500 uppercase tracking-widest text-sm line-clamp-2">{activeJob.description}</p>
+                  <div className="flex flex-wrap items-center gap-2 mb-4">
+                      <span className="bg-yellow-300 px-3 py-1 font-black uppercase text-xs border-2 border-brutal-black shadow-brutal-sm">
+                        Nova Alocação via IA
+                      </span>
+                      <span className="bg-white px-3 py-1 font-black uppercase text-xs border-2 border-brutal-black shadow-brutal-sm text-gray-500">
+                        {activeJob.title}
+                      </span>
+                    </div>
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-black uppercase leading-tight mb-2 line-clamp-4 text-brutal-black">
+                      {activeJob.description}
+                    </h2>
                 </div>
                 
                 {/* CronÃ´metro */}
