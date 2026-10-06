@@ -5,6 +5,8 @@ import { jwtVerify } from 'jose';
 import prisma from '@/lib/prisma';
 import * as cheerio from 'cheerio'; // Instalar cheerio para extrair metadados
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
   try {
     // 1. Verificação de Segurança

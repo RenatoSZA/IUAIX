@@ -4,6 +4,8 @@ import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import prisma from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 // GET: Lista os Novatos disponíveis para adoção
 export async function GET(request: Request) {
   try {

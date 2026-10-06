@@ -7,6 +7,8 @@ import { v4 as uuidv4 } from 'uuid';
 import prisma from '@/lib/prisma';
 import rateLimit from '@/lib/rate-limit';
 
+export const dynamic = 'force-dynamic';
+
 // Permite no máximo 10 uploads por IP a cada 10 minutos (Evita Storage Exhaustion)
 const uploadLimiter = rateLimit({
   interval: 10 * 60 * 1000,
