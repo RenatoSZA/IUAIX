@@ -123,8 +123,12 @@ export default function Dashboard() {
         
         <div className="p-6 border-t-4 border-brutal-black bg-white flex flex-col gap-4">
           <Link href="/perfil" className="flex items-center gap-3 group hover:bg-gray-50 p-2 border-2 border-transparent hover:border-brutal-black transition-colors">
-            <div className="w-12 h-12 bg-gray-200 border-2 border-brutal-black overflow-hidden flex items-center justify-center">
-              <img src="https://i.pravatar.cc/150?img=11" alt="Perfil" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+            <div className="w-12 h-12 bg-brutal-black border-2 border-brutal-black overflow-hidden flex items-center justify-center text-xl font-black text-white group-hover:bg-royal transition-colors">
+              {user?.profilePic ? (
+                <img src={user.profilePic} alt="Perfil" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+              ) : (
+                <span className="uppercase">{user?.name ? user.name.charAt(0) : (role === 'criativo' ? 'P' : 'C')}</span>
+              )}
             </div>
             <div>
               <p className="font-black uppercase text-brutal-black leading-none truncate max-w-[120px]">{user?.name || (role === 'criativo' ? 'Profissional' : 'Sua Conta')}</p>
