@@ -32,9 +32,32 @@ export default function BrandVault() {
 
   const [showToast, setShowToast] = useState(false);
 
-  const handleSave = () => {
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+  const handleSave = async () => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      alert("Usuário não autenticado. Faça login novamente.");
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/vault/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: userId,
+          content: brandData,
+          assetUrl: attachments[0] || 'manual-input',
+          assetType: 'rules'
+        })
+      });
+
+      if (!response.ok) throw new Error();
+      
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (e) {
+      alert("Erro ao salvar regras no servidor.");
+    }
   };
 
   const handleAddInput = () => {
@@ -43,7 +66,7 @@ export default function BrandVault() {
     setInputValue('');
   };
 
-  const simulateAIExtraction = () => {
+  const simulateAIExtraction = async () => {
     if (attachments.length === 0) {
       alert("Anexe pelo menos um link ou arquivo para a IA analisar.");
       return;
@@ -51,25 +74,25 @@ export default function BrandVault() {
     
     setStatus('analyzing');
     
-    setTimeout(() => {
-      // Mock da IA preenchendo os dados baseados no "input"
-      setBrandData({
-        name: 'Minha Startup',
-        slogan: 'Infraestrutura criativa B2B',
-        targetAudience: 'Fundadores, C-Levels e Diretores de Marketing de empresas tech e SaaS buscando escalar design.',
-        toneOfVoice: 'Direto, pragmático, sem jargões de marketing e altamente profissional. Sem excesso de emojis.',
-        colors: ['#0f172a', '#0F3CC9', '#FDE047'], // brutal-black, royal, yellow
-        fonts: ['Space Grotesk', 'Inter'],
-        vibe: ['Arrojado', 'B2B', 'Tech', 'Minimalista', 'Brutalista'],
-        rules: [
-          { type: 'do', text: 'Sempre usar alto contraste entre fundo e texto.' },
-          { type: 'do', text: 'Aplicar borders grossas e cantos quadrados.' },
-          { type: 'dont', text: 'Nunca usar degradês complexos ou sombras suaves.' },
-          { type: 'dont', text: 'Evitar fotos clichês de banco de imagens (pessoas sorrindo para o nada).' }
-        ]
+    try {
+      const response = await fetch('/api/ai/vault-extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ attachments })
       });
+
+      if (!response.ok) {
+        throw new Error("Falha na extração");
+      }
+
+      const data = await response.json();
+      setBrandData(data);
       setStatus('ready');
-    }, 4000);
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao extrair dados. Verifique as URLs.");
+      setStatus('idle');
+    }
   };
 
   const updateColor = (index: number, newColor: string) => {
@@ -117,19 +140,45 @@ export default function BrandVault() {
               </p>
             </div>
 
-            {/* Drag & Drop Zone */}
+            {/* Drag & Drop / Upload Zone (Conectado à API do Supabase) */}
             <div className="border-4 border-dashed border-brutal-black bg-white p-12 text-center hover:bg-blue-50 hover:border-royal transition-colors cursor-pointer group mb-6 relative">
-              <UploadCloud size={64} className="mx-auto text-gray-400 group-hover:text-royal mb-4 transition-colors" />
-              <h3 className="text-2xl font-black uppercase mb-2">Arraste Arquivos Aqui</h3>
-              <p className="font-bold text-gray-500">PDFs, SVGs, PNGs ou JPGs suportados.</p>
-              
-              {/* Overlay Simulado de Arquivos Anexados */}
-              <button 
-                onClick={(e) => { e.stopPropagation(); setAttachments([...attachments, 'print_antigo_01.png']); }}
-                className="absolute top-4 right-4 bg-gray-200 hover:bg-gray-300 px-3 py-1 text-xs font-bold uppercase border-2 border-brutal-black"
-              >
-                + Simular Upload
-              </button>
+              <input 
+                type="file" 
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                onChange={async (e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    setAttachments([...attachments, `Carregando: ${file.name}...`]);
+
+                    try {
+                      const formData = new FormData();
+                      formData.append('file', file);
+                      
+                      // Envia fisicamente o arquivo pesado para o Supabase
+                      const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                      });
+                      
+                      const data = await response.json();
+                      
+                      if (response.ok) {
+                        // Atualiza a lista tirando o 'Carregando' e pondo o real
+                        setAttachments(prev => [...prev.filter(a => !a.startsWith('Carregando')), data.url]);
+                      } else {
+                        alert(`Erro no upload: ${data.error}`);
+                        setAttachments(prev => prev.filter(a => !a.startsWith('Carregando')));
+                      }
+                    } catch (err) {
+                      alert('Erro fatal ao conectar com o Storage.');
+                      setAttachments(prev => prev.filter(a => !a.startsWith('Carregando')));
+                    }
+                  }
+                }}
+              />
+              <UploadCloud size={64} className="mx-auto text-gray-400 group-hover:text-royal mb-4 transition-colors relative z-0" />
+              <h3 className="text-2xl font-black uppercase mb-2 relative z-0">Arraste Arquivos Aqui</h3>
+              <p className="font-bold text-gray-500 relative z-0">PDFs, SVGs, PNGs ou JPGs. O envio será seguro (Supabase Storage).</p>
             </div>
 
             {/* Input de Links */}

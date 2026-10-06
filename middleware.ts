@@ -1,16 +1,30 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { jwtVerify } from 'jose';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   // A segurança real roda no servidor (Edge) antes de carregar o HTML
-  const role = request.cookies.get('iuaix_role')?.value;
   const { pathname } = request.nextUrl;
+  const token = request.cookies.get('iuaix_token')?.value;
 
   // Rotas restritas que exigem login
-  const protectedPaths = ['/dashboard', '/chat', '/cliente', '/matchmaking', '/vault', '/profissional', '/admin'];
+  const protectedPaths = ['/dashboard', '/chat', '/cliente', '/matchmaking', '/vault', '/profissional', '/admin', '/checkout'];
   const isProtected = protectedPaths.some(path => pathname.startsWith(path));
 
-  if (isProtected && !role) {
+  let verifiedRole = null;
+
+  if (token) {
+    try {
+      const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_for_dev_only');
+      const { payload } = await jwtVerify(token, JWT_SECRET);
+      verifiedRole = payload.role as string;
+    } catch (err) {
+      // Token inválido ou expirado
+      verifiedRole = null;
+    }
+  }
+
+  if (isProtected && !verifiedRole) {
     // Redireciona usuários deslogados antes do carregamento da tela
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname + request.nextUrl.search);
@@ -21,21 +35,22 @@ export function middleware(request: NextRequest) {
   const authPaths = ['/login', '/cadastro'];
   const isAuthPath = authPaths.some(path => pathname.startsWith(path));
   
-  if (isAuthPath && role) {
+  if (isAuthPath && verifiedRole) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // Prevenção de Escalada de Privilégio (Role-Based Access Control - RBAC)
-  if (role === 'criativo' && (pathname.startsWith('/cliente') || pathname.startsWith('/matchmaking'))) {
+  if (verifiedRole === 'criativo' && (pathname.startsWith('/cliente') || pathname.startsWith('/matchmaking') || pathname.startsWith('/checkout'))) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  if (role === 'empresa' && pathname.startsWith('/profissional')) {
+  // Se a empresa tentar acessar a área de profissionais
+  if (verifiedRole === 'empresa' && pathname.startsWith('/profissional')) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // Prevenção de Rota Admin
-  if (pathname.startsWith('/admin') && role !== 'admin') {
+  if (pathname.startsWith('/admin') && verifiedRole !== 'admin') {
     // Esconde a rota dando um redirecionamento seguro para a base
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }

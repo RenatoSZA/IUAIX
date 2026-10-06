@@ -21,7 +21,7 @@ export default function Home() {
             Iuaix
           </Link>
           <div className="hidden lg:flex items-center gap-6 text-sm font-black uppercase tracking-widest text-brutal-black">
-            <Link href="/assinaturas" className="hover:bg-gray-100 px-3 py-2 border-2 border-transparent hover:border-brutal-black transition-all">Planos & Tokens</Link>
+            <Link href="/assinaturas" className="hover:bg-gray-100 px-3 py-2 border-2 border-transparent hover:border-brutal-black transition-all">Preços</Link>
             <Link href="/cadastro" className="hover:bg-gray-100 px-3 py-2 border-2 border-transparent hover:border-brutal-black transition-all">Trabalhe Conosco</Link>
           </div>
         </div>
@@ -42,7 +42,7 @@ export default function Home() {
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="absolute top-full left-0 w-full bg-white border-b-4 border-t-4 border-brutal-black p-4 flex flex-col gap-2 lg:hidden font-black uppercase">
-            <Link href="/assinaturas" className="p-4 border-2 border-transparent hover:border-brutal-black hover:bg-gray-50">Planos & Tokens</Link>
+            <Link href="/assinaturas" className="p-4 border-2 border-transparent hover:border-brutal-black hover:bg-gray-50">Preços</Link>
             <Link href="/cadastro" className="p-4 border-2 border-transparent hover:border-brutal-black hover:bg-gray-50">Trabalhe Conosco</Link>
             <Link href="/login" className="p-4 border-2 border-transparent hover:border-brutal-black hover:bg-gray-50">Fazer login</Link>
           </div>
@@ -56,7 +56,7 @@ export default function Home() {
           Crie qualquer <span className="text-royal">Coisa.</span>
         </h1>
         <p className="font-bold text-gray-500 mb-12 text-xl max-w-2xl">
-          A infraestrutura DaaS que conecta sua demanda criativa ao squad ideal em segundos.
+          A plataforma que conecta você ou sua empresa ao designer perfeito em segundos.
         </p>
 
         {/* Form Box - Brutalismo Puro & Expositivo (Centralizado e Largo) */}
@@ -97,7 +97,7 @@ export default function Home() {
               }}
               className="flex-1 bg-brutal-black text-white px-8 py-5 font-black uppercase tracking-widest text-center border-4 border-brutal-black hover:bg-royal transition-colors shadow-[4px_4px_0px_#0f172a] hover:translate-y-1 hover:translate-x-1 hover:shadow-none flex items-center justify-center gap-3 text-lg"
             >
-              Simular Solicitação <ArrowRight size={24} />
+              Começar um Projeto <ArrowRight size={24} />
             </button>
             <Link href="/assinaturas" className="flex items-center justify-center font-bold text-gray-500 hover:text-brutal-black underline decoration-2 underline-offset-4 hover:bg-gray-100 px-8 py-5 border-4 border-transparent hover:border-brutal-black transition-all uppercase tracking-widest text-sm">
               Ver Tabela de Preços
@@ -107,16 +107,16 @@ export default function Home() {
           {/* Como Funciona Aberto */}
           <div className="mt-10 pt-8 border-t-4 border-brutal-black flex flex-col sm:flex-row justify-between gap-6 sm:gap-8">
             <div className="flex-1 border-l-4 border-royal pl-4">
-              <p className="font-black uppercase text-royal text-base mb-1">1. Solicite</p>
-              <p className="font-bold text-sm text-gray-500 uppercase tracking-wider">Crie o briefing</p>
+              <p className="font-black uppercase text-royal text-base mb-1">1. Faça o Pedido</p>
+              <p className="font-bold text-sm text-gray-500 uppercase tracking-wider">Explique o que precisa</p>
             </div>
             <div className="flex-1 border-l-4 border-royal pl-4">
-              <p className="font-black uppercase text-royal text-base mb-1">2. Match IA</p>
-              <p className="font-bold text-sm text-gray-500 uppercase tracking-wider">Acha o talento ideal</p>
+              <p className="font-black uppercase text-royal text-base mb-1">2. IA encontra o Designer</p>
+              <p className="font-bold text-sm text-gray-500 uppercase tracking-wider">Te conectamos ao melhor perfil</p>
             </div>
             <div className="flex-1 border-l-4 border-royal pl-4">
-              <p className="font-black uppercase text-royal text-base mb-1">3. Entrega Segura</p>
-              <p className="font-bold text-sm text-gray-500 uppercase tracking-wider">Escrow protege o valor</p>
+              <p className="font-black uppercase text-royal text-base mb-1">3. Pagamento 100% Seguro</p>
+              <p className="font-bold text-sm text-gray-500 uppercase tracking-wider">Só pague quando aprovar a arte</p>
             </div>
           </div>
 
@@ -126,9 +126,9 @@ export default function Home() {
       {/* Feature Cards Section Expositiva */}
       <section className="px-4 md:px-12 py-20 max-w-[1600px] mx-auto border-t-4 border-brutal-black bg-white">
         <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight text-brutal-black mb-6 max-w-2xl">
-          Modelos de Operação
+          Como você quer trabalhar?
         </h2>
-        <p className="font-bold text-xl text-gray-500 mb-12 max-w-3xl">Entenda as modalidades de contratação e as tecnologias de governança disponíveis na plataforma.</p>
+        <p className="font-bold text-xl text-gray-500 mb-12 max-w-3xl">Contrate um profissional apenas quando precisar, ou assine um pacote para ter sua própria equipe de design.</p>
         
         <div className="grid lg:grid-cols-2 gap-8 mb-8">
           
@@ -136,22 +136,22 @@ export default function Home() {
           <div className="bg-white border-4 border-brutal-black p-8 flex flex-col justify-between shadow-brutal-dark">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="text-3xl font-black uppercase text-brutal-black mb-2">Jobs Sob Demanda</h3>
+                <h3 className="text-3xl font-black uppercase text-brutal-black mb-2">Trabalhos Avulsos</h3>
                 <p className="font-bold text-gray-500 leading-relaxed max-w-md">
-                  Contratação avulsa para demandas pontuais ou urgentes, com alocação imediata.
+                  Perfeito para tarefas pontuais ou urgentes. Você paga apenas pelo que pedir.
                 </p>
               </div>
               <Zap size={48} className="text-yellow-500 hidden sm:block" strokeWidth={2} />
             </div>
 
             <ul className="space-y-4 mb-10 font-bold text-gray-700 bg-gray-50 p-6 border-2 border-brutal-black">
-              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Alocação por IA:</strong> O sistema analisa seu briefing e conecta ao profissional disponível mais qualificado.</li>
-              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Prazos Definidos:</strong> SLAs de entrega garantidos entre 2 e 48 horas.</li>
-              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Pagamento Unitário:</strong> Pagamento realizado apenas pelos tokens do job solicitado, sem compromisso mensal.</li>
+              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Seleção Inteligente:</strong> O sistema analisa seu pedido e encontra o profissional qualificado na mesma hora.</li>
+              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Prazo Garantido:</strong> Entregas rápidas garantidas, variando de 2 a 48 horas.</li>
+              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Sem Mensalidades:</strong> Você compra pacotes de "Fichas" e gasta apenas no trabalho que solicitar.</li>
             </ul>
 
             <Link href="/matchmaking" className="w-full sm:w-auto self-start bg-white text-brutal-black border-4 border-brutal-black px-8 py-4 font-black uppercase tracking-widest text-sm hover:bg-yellow-400 transition-colors shadow-brutal-sm hover:-translate-y-1 hover:-translate-x-1 flex items-center justify-center gap-3">
-              Simular Solicitação <ArrowRight size={18} />
+              Fazer um Pedido <ArrowRight size={18} />
             </Link>
           </div>
 
@@ -159,18 +159,18 @@ export default function Home() {
           <div className="bg-white border-4 border-brutal-black p-8 flex flex-col justify-between shadow-brutal-dark">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="text-3xl font-black uppercase text-brutal-black mb-2">Equipes Dedicadas</h3>
+                <h3 className="text-3xl font-black uppercase text-brutal-black mb-2">Equipe Dedicada</h3>
                 <p className="font-bold text-gray-500 leading-relaxed max-w-md">
-                  Assinatura recorrente para alocação de profissionais fixos focados na sua marca.
+                  Assinatura mensal para empresas que precisam de designs todos os dias.
                 </p>
               </div>
               <Users size={48} className="text-blue-500 hidden sm:block" strokeWidth={2} />
             </div>
 
             <ul className="space-y-4 mb-10 font-bold text-gray-700 bg-gray-50 p-6 border-2 border-brutal-black">
-              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Squad Dedicado com Alta Disponibilidade:</strong> A IA mantém a afinidade da equipe com a sua marca, mas realiza reposição silenciosa caso o profissional fique indisponível, blindando seu SLA.</li>
-              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Custo Otimizado:</strong> Valor reduzido por token na contratação do pacote mensal.</li>
-              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Atendimento Prioritário:</strong> O time alocado atende prioritariamente às suas demandas.</li>
+              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Sempre Disponível:</strong> Um time fixo para a sua marca. Se alguém ficar doente, substituímos sem atrasar seu prazo.</li>
+              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Mais Barato:</strong> Comprando o plano mensal, cada Ficha custa bem menos.</li>
+              <li className="flex items-center gap-3"><Check size={20} className="text-royal flex-shrink-0"/> <strong>Prioridade Máxima:</strong> Seus pedidos são atendidos antes de todos os outros.</li>
             </ul>
 
             <Link href="/assinaturas" className="w-full sm:w-auto self-start bg-white text-brutal-black border-4 border-brutal-black px-8 py-4 font-black uppercase tracking-widest text-sm hover:bg-royal hover:text-white transition-colors shadow-brutal-sm hover:-translate-y-1 hover:-translate-x-1 flex items-center justify-center gap-3">
@@ -186,20 +186,19 @@ export default function Home() {
           <div className="bg-white border-4 border-brutal-black p-8 flex flex-col justify-between shadow-brutal-dark lg:col-span-1">
             <div className="mb-6">
               <Lock size={40} className="text-green-500 mb-4" strokeWidth={2} />
-              <h3 className="text-3xl font-black uppercase text-brutal-black mb-2">Brand Vault</h3>
+              <h3 className="text-3xl font-black uppercase text-brutal-black mb-2">Cofre da Marca</h3>
               <p className="font-bold text-gray-500 leading-relaxed">
-                Sistema de armazenamento e validação dos guias visuais oficiais da sua marca.
+                Um lugar seguro onde guardamos o logotipo e as cores da sua empresa.
               </p>
             </div>
 
             <ul className="space-y-3 mb-8 font-bold text-sm text-gray-700 bg-gray-50 p-4 border-2 border-brutal-black">
-              <li className="flex items-start gap-2"><Check size={16} className="text-royal mt-1 flex-shrink-0"/> Armazenamento de vetores oficiais.</li>
-              <li className="flex items-start gap-2"><Check size={16} className="text-royal mt-1 flex-shrink-0"/> Validação de tipografias estabelecidas.</li>
-              <li className="flex items-start gap-2"><Check size={16} className="text-royal mt-1 flex-shrink-0"/> Verificação algorítmica de hexadecimais.</li>
+              <li className="flex items-start gap-2"><Check size={16} className="text-royal mt-1 flex-shrink-0"/> O profissional não precisa ficar te pedindo a logo toda hora.</li>
+              <li className="flex items-start gap-2"><Check size={16} className="text-royal mt-1 flex-shrink-0"/> A inteligência artificial garante que as cores e fontes não saiam do padrão.</li>
             </ul>
 
             <Link href="/vault" className="w-full text-center bg-white text-brutal-black border-4 border-brutal-black px-6 py-4 font-black uppercase tracking-widest text-xs hover:bg-green-400 transition-colors shadow-brutal-sm">
-              Configurar Brand Vault
+              Configurar Cofre da Marca
             </Link>
           </div>
 
@@ -208,26 +207,26 @@ export default function Home() {
             <CreditCard size={180} className="text-white opacity-10 absolute -right-10 -bottom-10 pointer-events-none" strokeWidth={1} />
             
             <div className="relative z-10 mb-8 max-w-2xl">
-              <h3 className="text-4xl font-black uppercase mb-4">Economia Baseada em Tokens</h3>
+              <h3 className="text-4xl font-black uppercase mb-4">Como funcionam as "Fichas"?</h3>
               <p className="font-bold text-gray-200 leading-relaxed text-lg mb-6">
-                Os custos são calculados com base na complexidade real da demanda, padronizando os orçamentos e evitando variações baseadas em horas estimadas.
+                Para evitar orçamentos surpresa, todo trabalho na plataforma custa um número fixo de fichas. Assim você sabe exatamente quanto vai gastar antes mesmo de começar.
               </p>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4 mb-10 relative z-10">
                <div className="bg-white/10 p-5 border-2 border-white/20 backdrop-blur-sm">
-                 <p className="text-yellow-300 font-black uppercase mb-1">Acúmulo de Tokens (Rollover)</p>
-                 <p className="text-sm font-medium">Tokens não utilizados na sua assinatura permanecem válidos e acumulam por um período de 90 dias.</p>
+                 <p className="text-yellow-300 font-black uppercase mb-1">Fichas Acumulam</p>
+                 <p className="text-sm font-medium">As fichas que você comprar e não usar não desaparecem. Elas valem por até 90 dias na sua conta.</p>
                </div>
                <div className="bg-white/10 p-5 border-2 border-white/20 backdrop-blur-sm">
-                 <p className="text-yellow-300 font-black uppercase mb-1">Proteção Financeira (Escrow)</p>
-                 <p className="text-sm font-medium">Os tokens são retidos em garantia e repassados ao profissional apenas após a entrega e aprovação do projeto.</p>
+                 <p className="text-yellow-300 font-black uppercase mb-1">Pagamento Seguro</p>
+                 <p className="text-sm font-medium">Quando você pede um trabalho, a ficha fica guardada com a Iuaix. O profissional só recebe a ficha se você aprovar a arte final.</p>
                </div>
             </div>
 
             <div className="mt-auto relative z-10">
               <Link href="/assinaturas" className="inline-block bg-brutal-black text-white border-4 border-brutal-black px-10 py-5 font-black uppercase text-base hover:bg-yellow-400 hover:text-brutal-black transition-colors shadow-brutal-sm">
-                Entender Regras de Cobrança
+                Entender como pagar
               </Link>
             </div>
           </div>
@@ -245,24 +244,24 @@ export default function Home() {
             <span className="text-4xl font-black uppercase tracking-tighter text-white">Iuaix</span>
           </div>
           <p className="text-gray-500 font-bold max-w-sm mb-6 text-sm">
-            Trazendo governança, previsibilidade e velocidade de resposta ao mercado criativo B2B.
+            Trazendo segurança, qualidade e velocidade para quem precisa de design e para quem cria.
           </p>
-          <p className="text-xs font-bold text-gray-700 uppercase tracking-widest">© 2026 Iuaix DaaS</p>
+          <p className="text-xs font-bold text-gray-700 uppercase tracking-widest">© 2026 Iuaix</p>
         </div>
         
         <div className="flex gap-12 md:gap-24 font-bold uppercase tracking-widest text-sm relative z-10 flex-wrap">
           <div className="flex flex-col gap-4">
             <span className="text-gray-600 mb-2 border-b-2 border-gray-800 pb-2">Plataforma</span>
-            <Link href="/assinaturas" className="hover:text-royal transition-colors">Tabela de Planos</Link>
+            <Link href="/assinaturas" className="hover:text-royal transition-colors">Preços</Link>
             <Link href="/cadastro" className="hover:text-royal transition-colors">Criar Conta</Link>
-            <Link href="/dashboard" className="hover:text-royal transition-colors">Painel de Controle</Link>
+            <Link href="/dashboard" className="hover:text-royal transition-colors">Entrar</Link>
           </div>
           
           <div className="flex flex-col gap-4">
-            <span className="text-gray-600 mb-2 border-b-2 border-gray-800 pb-2">Produtos / Features</span>
-            <Link href="/matchmaking" className="hover:text-royal transition-colors">Motor de Matchmaking IA</Link>
-            <Link href="/vault" className="hover:text-royal transition-colors">Cofre de IP (Brand Vault)</Link>
-            <Link href="/assinaturas" className="hover:text-royal transition-colors">Operação de Células</Link>
+            <span className="text-gray-600 mb-2 border-b-2 border-gray-800 pb-2">Como funciona</span>
+            <Link href="/matchmaking" className="hover:text-royal transition-colors">Como achamos seu designer</Link>
+            <Link href="/vault" className="hover:text-royal transition-colors">Cofre da sua Marca</Link>
+            <Link href="/assinaturas" className="hover:text-royal transition-colors">Pacotes para Empresas</Link>
           </div>
         </div>
       </footer>

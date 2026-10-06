@@ -14,11 +14,16 @@ export default function OnboardingCadastro() {
     name: '',
     email: '',
     password: '',
-    document: '' // CNPJ ou PIX
+    documentType: 'cpf', // cpf ou cnpj
+    document: '',
+    birthDate: ''
   });
 
   const handleNext = () => setStep((s) => s + 1);
   const handlePrev = () => setStep((s) => s - 1);
+
+  // Determina se deve mostrar Data de Nascimento
+  const needsBirthDate = accountType === 'criativo' || (accountType === 'empresa' && formData.documentType === 'cpf');
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans text-brutal-black flex flex-col md:flex-row">
@@ -86,14 +91,14 @@ export default function OnboardingCadastro() {
                   <input type="radio" name="account" className="hidden" onClick={() => setAccountType('empresa')} />
                   <Building2 size={32} className={`mb-4 ${accountType === 'empresa' ? 'text-royal' : 'text-brutal-black'}`} />
                   <h3 className="font-black uppercase text-xl mb-2">Contratante</h3>
-                  <p className="font-bold text-gray-500 text-sm">Empresa, Agência ou Startup precisando de execução criativa instantânea.</p>
+                  <p className="font-bold text-gray-500 text-sm">Empresas, Agências ou Pessoas Físicas precisando de execução criativa.</p>
                 </label>
 
                 <label className={`cursor-pointer border-4 p-6 transition-all shadow-[4px_4px_0px_#0f172a] hover:translate-y-1 hover:translate-x-1 hover:shadow-none ${accountType === 'criativo' ? 'border-green-500 bg-green-50' : 'border-brutal-black bg-white'}`}>
                   <input type="radio" name="account" className="hidden" onClick={() => setAccountType('criativo')} />
                   <Paintbrush size={32} className={`mb-4 ${accountType === 'criativo' ? 'text-green-600' : 'text-brutal-black'}`} />
-                  <h3 className="font-black uppercase text-xl mb-2">Célula Executora</h3>
-                  <p className="font-bold text-gray-500 text-sm">Profissional ou Squad buscando demandas já formatadas e com pagamento blindado.</p>
+                  <h3 className="font-black uppercase text-xl mb-2">Sou um Profissional</h3>
+                  <p className="font-bold text-gray-500 text-sm">Designer ou Criativo buscando trabalhos reais com pagamento 100% garantido.</p>
                 </label>
               </div>
             </div>
@@ -102,51 +107,65 @@ export default function OnboardingCadastro() {
           {/* === ETAPA 2: DADOS CADASTRAIS MESTRE === */}
           {step === 2 && (
             <div className="animate-in slide-in-from-right-8 duration-500">
-              <h2 className="text-3xl sm:text-4xl font-black uppercase mb-2">Identidade Operacional</h2>
+              <h2 className="text-3xl sm:text-4xl font-black uppercase mb-2">Seus Dados Pessoais</h2>
               <p className="text-gray-500 font-bold mb-8 text-sm sm:text-base border-l-4 border-royal pl-4 bg-gray-50 p-3">
                 {accountType === 'empresa' 
-                  ? 'Os direitos autorais serão transferidos para este CNPJ.' 
-                  : 'Os repasses em Escrow serão liquidados nesta chave PIX.'}
+                  ? 'Os direitos autorais das artes criadas serão passados para o documento abaixo.' 
+                  : 'Os seus pagamentos serão depositados automaticamente nesta conta.'}
               </p>
 
               <div className="space-y-6">
                 <div>
-                  <label className="block font-black uppercase text-xs tracking-widest mb-2 text-gray-500">Nome / Razão Social</label>
+                  <label className="block font-black uppercase text-xs tracking-widest mb-2 text-gray-500">Nome Completo / Razão Social</label>
                   <input 
                     type="text" 
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    placeholder="Sua Empresa LTDA" 
+                    placeholder="Seu Nome ou Empresa LTDA" 
                     className="w-full border-4 border-brutal-black p-4 font-bold text-lg focus:bg-blue-50 focus:outline-none transition-colors" 
                   />
                 </div>
                 
                 <div>
-                  <label className="block font-black uppercase text-xs tracking-widest mb-2 text-gray-500">E-mail Corporativo</label>
+                  <label className="block font-black uppercase text-xs tracking-widest mb-2 text-gray-500">E-mail Principal</label>
                   <input 
                     type="email" 
                     value={formData.email}
                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    placeholder="operacao@empresa.com" 
+                    placeholder="seu@email.com" 
                     className="w-full border-4 border-brutal-black p-4 font-bold text-lg focus:bg-blue-50 focus:outline-none transition-colors" 
                   />
                 </div>
 
+                {accountType === 'empresa' && (
+                  <div>
+                    <label className="block font-black uppercase text-xs tracking-widest mb-2 text-gray-500">Tipo de Documento</label>
+                    <select 
+                      value={formData.documentType}
+                      onChange={(e) => setFormData({...formData, documentType: e.target.value})}
+                      className="w-full border-4 border-brutal-black p-4 font-bold text-lg focus:bg-blue-50 focus:outline-none transition-colors"
+                    >
+                      <option value="cpf">Pessoa Física (CPF)</option>
+                      <option value="cnpj">Pessoa Jurídica (CNPJ)</option>
+                    </select>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block font-black uppercase text-xs tracking-widest mb-2 text-gray-500">
-                      {accountType === 'empresa' ? 'CNPJ' : 'Chave PIX (CPF/CNPJ)'}
+                      {accountType === 'empresa' ? (formData.documentType === 'cpf' ? 'CPF' : 'CNPJ') : 'Chave PIX (CPF)'}
                     </label>
                     <input 
                       type="text" 
                       value={formData.document}
                       onChange={(e) => setFormData({...formData, document: e.target.value})}
-                      placeholder={accountType === 'empresa' ? "00.000.000/0001-00" : "pix@email.com"} 
+                      placeholder="Somente números" 
                       className="w-full border-4 border-brutal-black p-4 font-bold text-lg focus:bg-blue-50 focus:outline-none transition-colors" 
                     />
                   </div>
                   <div>
-                    <label className="block font-black uppercase text-xs tracking-widest mb-2 text-gray-500">Senha Master</label>
+                    <label className="block font-black uppercase text-xs tracking-widest mb-2 text-gray-500">Sua Senha</label>
                     <input 
                       type="password" 
                       value={formData.password}
@@ -156,6 +175,18 @@ export default function OnboardingCadastro() {
                     />
                   </div>
                 </div>
+
+                {needsBirthDate && (
+                  <div className="animate-in fade-in duration-300">
+                    <label className="block font-black uppercase text-xs tracking-widest mb-2 text-gray-500">Data de Nascimento</label>
+                    <input 
+                      type="date" 
+                      value={formData.birthDate}
+                      onChange={(e) => setFormData({...formData, birthDate: e.target.value})}
+                      className="w-full border-4 border-brutal-black p-4 font-bold text-lg focus:bg-blue-50 focus:outline-none transition-colors" 
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -163,24 +194,24 @@ export default function OnboardingCadastro() {
           {/* === ETAPA 3: SETUP ESPECÍFICO === */}
           {step === 3 && accountType === 'empresa' && (
             <div className="animate-in slide-in-from-right-8 duration-500">
-              <h2 className="text-3xl sm:text-4xl font-black uppercase mb-2">Upload de Brand Vault</h2>
+              <h2 className="text-3xl sm:text-4xl font-black uppercase mb-2">Arquivos da sua Marca</h2>
               <p className="text-gray-500 font-bold mb-8 text-sm sm:text-base border-l-4 border-royal pl-4 bg-gray-50 p-3">
-                Suba os manuais da sua marca. A IA vai extrair as diretrizes e trancar no cofre para abastecer as futuras células.
+                Suba o logotipo e o manual da sua marca (se tiver). Nós vamos guardar isso no nosso cofre digital para que o profissional saiba exatamente como a sua marca deve parecer.
               </p>
 
               <div className="border-4 border-dashed border-gray-400 bg-gray-50 hover:bg-white hover:border-brutal-black transition-colors p-12 text-center cursor-pointer mb-6 group">
                 <UploadCloud size={48} className="mx-auto mb-4 text-gray-400 group-hover:text-royal transition-colors" />
-                <p className="font-black uppercase text-xl mb-2">Arraste seus assets (Opcional)</p>
-                <p className="font-bold text-gray-500 text-sm">Logos (AI, SVG), Tipografias, Manuais (PDF)</p>
+                <p className="font-black uppercase text-xl mb-2">Arraste seus arquivos (Opcional)</p>
+                <p className="font-bold text-gray-500 text-sm">Logos, Fontes ou Manuais em PDF</p>
               </div>
             </div>
           )}
 
           {step === 3 && accountType === 'criativo' && (
             <div className="animate-in slide-in-from-right-8 duration-500">
-              <h2 className="text-3xl sm:text-4xl font-black uppercase mb-2">Curadoria de Algoritmo</h2>
+              <h2 className="text-3xl sm:text-4xl font-black uppercase mb-2">Suas Especialidades</h2>
               <p className="text-gray-500 font-bold mb-8 text-sm sm:text-base border-l-4 border-yellow-500 pl-4 bg-gray-50 p-3">
-                Preencha corretamente. Nosso sistema de IA fará o matchmaking dos jobs exclusivamente baseado nessas tags.
+                Selecione no que você é bom. Nossa Inteligência Artificial vai te recomendar apenas os trabalhos perfeitos para o seu perfil.
               </p>
 
               <div className="space-y-6">
@@ -232,19 +263,24 @@ export default function OnboardingCadastro() {
             </div>
           )}
 
-          {/* === SUCESSO === */}
+          {/* === SUCESSO / VERIFICAÇÃO DE E-MAIL === */}
           {step === 5 && (
             <div className="text-center animate-in zoom-in-95 duration-500 py-12">
-              <div className="w-32 h-32 bg-green-500 border-4 border-brutal-black rounded-full flex items-center justify-center mx-auto mb-8 shadow-brutal-dark">
+              <div className="w-32 h-32 bg-yellow-300 border-4 border-brutal-black rounded-full flex items-center justify-center mx-auto mb-8 shadow-brutal-dark">
                 <CheckCircle size={64} className="text-brutal-black" strokeWidth={3} />
               </div>
-              <h2 className="text-5xl font-black uppercase mb-4 tracking-tight">100% Configurado</h2>
-              <p className="text-gray-500 font-bold text-xl mb-12">
-                A partir de agora, o sistema nunca mais pedirá essas informações. Fluxo operacional desbloqueado.
+              <h2 className="text-4xl md:text-5xl font-black uppercase mb-4 tracking-tight">Verifique seu E-mail</h2>
+              <p className="text-gray-500 font-bold text-xl mb-6">
+                Para efetivar o cadastro e garantir a segurança B2B, enviamos um link de autenticação para <span className="text-brutal-black underline">{formData.email}</span>.
               </p>
               
-              <Link href="/dashboard" className="inline-block bg-brutal-black text-white px-12 py-6 font-black uppercase text-2xl hover:bg-royal transition-colors border-4 border-brutal-black shadow-[8px_8px_0px_#0f3cc9]">
-                Acessar Plataforma
+              <div className="bg-gray-50 border-4 border-brutal-black p-6 mb-8 text-left inline-block">
+                <p className="font-bold text-sm text-gray-600">⚠️ O link expira em 2 horas.</p>
+                <p className="font-bold text-sm text-gray-600">Verifique sua caixa de Spam se necessário.</p>
+              </div>
+              <br/>
+              <Link href="/login" className="inline-block bg-brutal-black text-white px-12 py-6 font-black uppercase text-xl hover:bg-royal transition-colors border-4 border-brutal-black shadow-[8px_8px_0px_#0f3cc9]">
+                Ir para o Login
               </Link>
             </div>
           )}
@@ -268,23 +304,37 @@ export default function OnboardingCadastro() {
                 </button>
               ) : (
                 <button 
-                  onClick={() => {
-                    // Salvar funcionalmente no LocalStorage
-                    const users = JSON.parse(localStorage.getItem('iuaix_users') || '[]');
-                    const newUser = {
-                      ...formData,
-                      role: accountType,
-                      id: Date.now()
-                    };
-                    users.push(newUser);
-                    localStorage.setItem('iuaix_users', JSON.stringify(users));
-                    localStorage.setItem('currentUser', JSON.stringify(newUser));
-                    localStorage.setItem('userRole', accountType || 'empresa');
-                    
-                    // Cookie Syncing (para o Middleware ler no servidor)
-                    document.cookie = `iuaix_role=${accountType}; path=/; max-age=86400; SameSite=Strict`;
-                    
-                    setStep(5);
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/auth/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          name: formData.name,
+                          email: formData.email,
+                          password: formData.password,
+                          role: accountType,
+                          birthDate: formData.birthDate,
+                          document: formData.document
+                        })
+                      });
+                      
+                      const data = await response.json();
+                      
+                      if (!response.ok) {
+                        alert(data.error || 'Erro no cadastro');
+                        return;
+                      }
+
+                      // Sucesso (Backend enviou o Cookie JWT).
+                      // Salvamos apenas os metadados visuais no Storage.
+                      localStorage.setItem('currentUser', JSON.stringify(data.user));
+                      localStorage.setItem('userRole', data.user.role);
+                      
+                      setStep(5);
+                    } catch (err) {
+                      alert('Falha na comunicação com o servidor.');
+                    }
                   }}
                   className="bg-green-500 text-brutal-black px-8 py-4 font-black uppercase text-lg border-4 border-brutal-black hover:bg-green-600 transition-colors flex items-center gap-2 shadow-[4px_4px_0px_#0f172a] active:translate-y-1 active:shadow-none"
                 >

@@ -20,9 +20,33 @@ export default function RadarOperacional() {
   }, [router]);
 
   const [timeLeft, setTimeLeft] = useState(180); // 3 minutos em segundos
-  const [status, setStatus] = useState<'ping' | 'accepted' | 'missed'>('ping');
+  const [status, setStatus] = useState<'ping' | 'accepted' | 'missed' | 'searching'>('searching');
+  const [activeJob, setActiveJob] = useState<any>(null);
 
-  if (!isAuthorized) return <div className="min-h-screen bg-brutal-black flex items-center justify-center text-white font-black uppercase text-xl">Inicializando Radar...</div>;
+  // Busca jobs pendentes a cada 5 segundos enquanto estiver em "searching"
+  useEffect(() => {
+    if (status !== 'searching') return;
+    
+    const fetchJob = async () => {
+      try {
+        const res = await fetch('/api/jobs/radar');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.job) {
+            setActiveJob(data.job);
+            setStatus('ping');
+            setTimeLeft(180); // Reinicia o cronômetro para o novo job
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    fetchJob();
+    const interval = setInterval(fetchJob, 5000);
+    return () => clearInterval(interval);
+  }, [status]);
 
   // Lógica do cronômetro
   useEffect(() => {
@@ -46,9 +70,30 @@ export default function RadarOperacional() {
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  const handleAccept = () => {
-    setStatus('accepted');
+  const handleAccept = async () => {
+    if (!activeJob) return;
+    try {
+      const res = await fetch('/api/jobs/accept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId: activeJob.id })
+      });
+      if (res.ok) {
+        setStatus('accepted');
+        setTimeout(() => {
+          router.push(`/chat?id=${activeJob.id}`);
+        }, 2000);
+      } else {
+        alert('Erro ao aceitar o trabalho. Ele pode ter expirado.');
+        setStatus('missed');
+      }
+    } catch(e) {
+      alert('Erro de conexão ao aceitar trabalho.');
+    }
   };
+
+  // Movi o early return para o fim, após todas as declarações de Hooks, para respeitar as regras do React.
+  if (!isAuthorized) return <div className="min-h-screen bg-brutal-black flex items-center justify-center text-white font-black uppercase text-xl">Inicializando Radar...</div>;
 
   return (
     <div className="min-h-screen bg-brutal-black text-white font-sans selection:bg-yellow-300 selection:text-brutal-black flex flex-col items-center justify-center p-6">
@@ -60,8 +105,17 @@ export default function RadarOperacional() {
       </div>
 
       <div className="w-full max-w-2xl relative">
+        {/* Estado 0: Searching */}
+        {status === 'searching' && (
+          <div className="flex flex-col items-center text-center animate-pulse">
+            <div className="w-24 h-24 rounded-full border-4 border-royal border-t-transparent animate-spin mb-6"></div>
+            <h2 className="text-2xl font-black uppercase tracking-widest text-gray-400">Varrendo a Rede...</h2>
+            <p className="text-gray-600 font-bold uppercase text-xs mt-2">Aguardando IA conectar um pedido ao seu perfil</p>
+          </div>
+        )}
+
         {/* Estado 1: Ping do Radar (Decisão Rápida) */}
-        {status === 'ping' && (
+        {status === 'ping' && activeJob && (
           <div className="bg-white text-brutal-black border-4 border-white shadow-[16px_16px_0px_#0F3CC9] animate-in zoom-in-95 duration-500 overflow-hidden relative">
             
             {/* Overlay de Urgência (Pulso Vermelho se < 30s) */}
@@ -73,8 +127,8 @@ export default function RadarOperacional() {
                   <span className="bg-yellow-300 px-3 py-1 font-black uppercase text-xs border-2 border-brutal-black mb-4 inline-block shadow-brutal-sm">
                     Nova Alocação via IA
                   </span>
-                  <h2 className="text-4xl md:text-5xl font-black uppercase leading-tight mb-2">Criação de Logo</h2>
-                  <p className="font-bold text-gray-500 uppercase tracking-widest text-sm">Escopo B2B - Brand Vault Prontos</p>
+                  <h2 className="text-4xl md:text-5xl font-black uppercase leading-tight mb-2">{activeJob.title}</h2>
+                  <p className="font-bold text-gray-500 uppercase tracking-widest text-sm line-clamp-2">{activeJob.description}</p>
                 </div>
                 
                 {/* Cronômetro */}
@@ -90,70 +144,63 @@ export default function RadarOperacional() {
               <div className="grid grid-cols-2 gap-4 mb-8">
                 <div className="bg-gray-100 p-4 border-2 border-gray-200">
                   <span className="block text-[10px] font-black uppercase text-gray-400 mb-1">Recompensa</span>
-                  <span className="text-2xl font-black flex items-center gap-2"><Zap size={20} className="text-yellow-500" /> 5 TKNS</span>
+                  <span className="text-2xl font-black flex items-center gap-2"><Zap size={20} className="text-yellow-500" /> {activeJob.tokensValue} TKNS</span>
                 </div>
                 <div className="bg-gray-100 p-4 border-2 border-gray-200">
-                  <span className="block text-[10px] font-black uppercase text-gray-400 mb-1">SLA Exigido</span>
-                  <span className="text-2xl font-black">48 Horas</span>
+                  <span className="block text-[10px] font-black uppercase text-gray-400 mb-1">Cliente</span>
+                  <span className="text-2xl font-black truncate">{activeJob.client?.name || "Empresa"}</span>
                 </div>
               </div>
 
-              <p className="text-sm font-bold text-gray-500 mb-8 p-4 bg-blue-50 border-l-4 border-royal">
-                A IA Inquisidora já congelou o escopo com o cliente. Você não perderá tempo com briefing. Aceite para liberar o depósito em Escrow.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex gap-4">
                 <button 
                   onClick={handleAccept}
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-brutal-black px-8 py-6 font-black uppercase text-xl border-4 border-brutal-black text-center flex items-center justify-center gap-3 shadow-brutal-sm hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all"
+                  className="flex-1 bg-royal text-white px-6 py-4 font-black uppercase tracking-widest hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 shadow-brutal-sm hover:translate-y-1 hover:translate-x-1 hover:shadow-none"
                 >
-                  <CheckCircle size={28} /> Assumir Job
+                  <CheckCircle size={20} /> Aceitar Operação
                 </button>
                 <button 
                   onClick={() => setStatus('missed')}
-                  className="w-full sm:w-auto bg-white text-gray-500 px-6 py-6 font-black uppercase text-sm border-4 border-gray-200 hover:border-red-600 hover:text-red-600 hover:bg-red-50 transition-all"
+                  className="bg-gray-200 text-gray-500 px-6 py-4 font-black uppercase hover:bg-red-100 hover:text-red-600 transition-colors border-2 border-transparent hover:border-red-600 flex items-center justify-center"
                 >
-                  Passar Adiante
+                  Recusar
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Estado 2: Job Aceito */}
+        {/* Estado 2: Aceite Confirmado */}
         {status === 'accepted' && (
-          <div className="bg-green-500 text-brutal-black border-4 border-green-500 shadow-[16px_16px_0px_#ffffff] p-8 md:p-12 animate-in slide-in-from-bottom duration-500 text-center">
+          <div className="bg-green-500 text-white border-4 border-green-500 p-12 text-center animate-in slide-in-from-bottom-10">
             <CheckCircle size={80} className="mx-auto mb-6" />
-            <h2 className="text-4xl font-black uppercase mb-4">Job Confirmado!</h2>
-            <p className="font-bold text-lg mb-8 max-w-md mx-auto">
-              O Escrow de 5 TKNS foi travado. O chat com o cliente foi aberto e as diretrizes do Brand Vault estão disponíveis no Workplace.
-            </p>
-            <Link 
-              href="/chat"
-              className="bg-brutal-black text-white px-8 py-5 font-black uppercase text-lg hover:bg-gray-800 transition-colors inline-flex items-center gap-3 shadow-brutal-sm"
-            >
-              Ir para o Workplace <ArrowRight size={24} />
-            </Link>
+            <h2 className="text-4xl font-black uppercase mb-4">Contrato Firmado!</h2>
+            <p className="font-bold text-green-100 mb-8 tracking-widest uppercase">Redirecionando para a Sala de Produção...</p>
           </div>
         )}
 
         {/* Estado 3: Tempo Esgotado ou Recusado */}
         {status === 'missed' && (
-          <div className="bg-gray-900 text-white border-4 border-gray-700 shadow-[16px_16px_0px_#000000] p-8 md:p-12 animate-in fade-in duration-500 text-center relative overflow-hidden">
-            <XCircle size={80} className="mx-auto mb-6 text-red-600 relative z-10" />
-            <h2 className="text-4xl font-black uppercase mb-4 relative z-10">Oportunidade Perdida</h2>
-            <p className="font-bold text-gray-400 mb-8 max-w-md mx-auto relative z-10">
-              Você não aceitou a tempo ou recusou o ping. A Inteligência Artificial já rotacionou a fila e alocou o job para o próximo profissional com maior aderência.
-            </p>
+          <div className="bg-gray-900 border-4 border-gray-800 p-12 text-center animate-in slide-in-from-bottom-10">
+            <XCircle size={80} className="mx-auto mb-6 text-gray-600" />
+            <h2 className="text-4xl font-black uppercase text-white mb-4">Oportunidade Perdida</h2>
+            <p className="font-bold text-gray-500 mb-8 tracking-widest uppercase">Este job foi repassado para o próximo da fila.</p>
             <button 
-              onClick={() => { setStatus('ping'); setTimeLeft(180); }}
-              className="bg-white text-brutal-black px-8 py-5 font-black uppercase text-lg border-4 border-brutal-black hover:bg-gray-200 transition-colors inline-block relative z-10"
+              onClick={() => {
+                setStatus('searching');
+                setActiveJob(null);
+              }}
+              className="bg-transparent border-4 border-white text-white px-8 py-4 font-black uppercase tracking-widest hover:bg-white hover:text-brutal-black transition-colors"
             >
-              Aguardar Novo Ping
+              Voltar ao Radar
             </button>
           </div>
         )}
 
+      </div>
+
+      <div className="absolute bottom-6 text-center text-gray-600 text-xs font-bold uppercase tracking-widest">
+        Iuaix DaaS • Matchmaking Ativo
       </div>
     </div>
   );

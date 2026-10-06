@@ -113,8 +113,8 @@ export default function Assinaturas() {
               </div>
             </div>
 
-            <Link href="/dashboard" className="w-full bg-white text-brutal-black border-4 border-brutal-black py-5 text-xl font-black uppercase tracking-widest hover:bg-yellow-300 transition-colors shadow-brutal-sm flex justify-center items-center gap-3">
-              Calcular Job <ArrowRight size={24} />
+            <Link href="/checkout?plan=avulso" className="w-full bg-white text-brutal-black border-4 border-brutal-black py-5 text-xl font-black uppercase tracking-widest hover:bg-yellow-300 transition-colors shadow-brutal-sm flex justify-center items-center gap-3">
+              Comprar Avulso <ArrowRight size={24} />
             </Link>
           </div>
 
@@ -143,8 +143,8 @@ export default function Assinaturas() {
               </div>
             </div>
 
-            <Link href="/dashboard" className="w-full bg-brutal-black text-white border-4 border-brutal-black py-5 text-xl font-black uppercase tracking-widest hover:bg-royal transition-colors shadow-brutal-sm flex justify-center items-center gap-3">
-              Ver Catálogo <ArrowRight size={24} />
+            <Link href="/checkout?plan=startup" className="w-full bg-brutal-black text-white border-4 border-brutal-black py-5 text-xl font-black uppercase tracking-widest hover:bg-royal transition-colors shadow-brutal-sm flex justify-center items-center gap-3">
+              Comprar Pack <ArrowRight size={24} />
             </Link>
           </div>
 
@@ -175,7 +175,7 @@ export default function Assinaturas() {
               </div>
             </div>
 
-            <Link href="/dashboard" className="relative z-10 w-full bg-white text-brutal-black border-4 border-brutal-black py-5 text-xl font-black uppercase tracking-widest hover:bg-gray-200 transition-colors shadow-brutal-dark flex justify-center items-center gap-3">
+            <Link href="/checkout?plan=mensal" className="relative z-10 w-full bg-white text-brutal-black border-4 border-brutal-black py-5 text-xl font-black uppercase tracking-widest hover:bg-gray-200 transition-colors shadow-brutal-dark flex justify-center items-center gap-3">
               Assinar Plano <ArrowRight size={24} />
             </Link>
           </div>

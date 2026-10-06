@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, Suspense } from 'react';
-import { Search, Zap, Clock, Shield, CheckCircle, ArrowLeft, Loader2, ArrowRight, ShieldAlert, Star, X } from 'lucide-react';
+import { Search, Zap, Clock, Shield, CheckCircle, ArrowLeft, Loader2, ArrowRight, ShieldAlert, Star, X, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -88,8 +88,18 @@ function MatchmakingContent() {
   const [step, setStep] = useState<'idle' | 'briefing_analysis' | 'scanning' | 'portfolio_review' | 'matched'>('idle');
   const [selectedJob, setSelectedJob] = useState('');
   const [matchedPro, setMatchedPro] = useState<any>(null);
+  const [activeJob, setActiveJob] = useState<any>(null);
   const [rejectedIds, setRejectedIds] = useState<number[]>([]);
   const [matchScore, setMatchScore] = useState(0);
+
+  // Novos campos de Briefing Avulso
+  const [briefingText, setBriefingText] = useState('');
+  const [briefingFile, setBriefingFile] = useState<File | null>(null);
+  const [deadline, setDeadline] = useState('7 dias');
+  
+  // Estados da IA Orçamentista
+  const [pricingData, setPricingData] = useState<any>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
 
   useEffect(() => {
     const role = localStorage.getItem('userRole');
@@ -118,77 +128,128 @@ function MatchmakingContent() {
     setStep('briefing_analysis');
   };
 
-  const handleFreezeScope = () => {
-    executeScan();
-  };
-
   const reset = () => {
     setStep('idle');
     setSelectedJob('');
     setMatchedPro(null);
+    setActiveJob(null);
     setRejectedIds([]);
+    setBriefingText('');
+    setPricingData(null);
+  };
+
+  // ==========================================
+  // IA ORÇAMENTISTA
+  // ==========================================
+  const calculatePricing = async () => {
+    if (!briefingText.trim()) {
+      alert("Por favor, descreva os detalhes do seu pedido no campo de texto.");
+      return;
+    }
+
+    setIsCalculating(true);
+    try {
+      const response = await fetch('/api/ai/pricing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: selectedJob,
+          briefing: briefingText,
+          deadline: deadline,
+          userId: localStorage.getItem('userId')
+        })
+      });
+
+      const data = await response.json();
+      setPricingData(data);
+    } catch (err) {
+      alert("Erro ao calcular orçamento via IA.");
+    } finally {
+      setIsCalculating(false);
+    }
   };
 
   // ==========================================
   // MOTOR DE MATCHMAKING (ALGORITMO DE SCORING)
   // ==========================================
-  const executeScan = () => {
+  const executeScan = async () => {
     setStep('scanning');
 
-    setTimeout(() => {
-      const MAX_CAPACITY = 3; // Limite de jobs simultâneos por profissional
+    try {
+      const selectedJobData = JOB_REQUESTS.find(j => j.id === selectedJob);
+      // O tokensValue agora reflete o preço real. Se o valor for em BRL puro, usamos direto ou convertemos.
+      // Pra simplificar internamente, vamos salvar tokens = BRL / 50
+      let tokensValue = selectedJobData ? selectedJobData.tokens : 5;
+      
+      if (pricingData && pricingData.estimatedPriceBRL) {
+        tokensValue = Math.max(1, Math.round(pricingData.estimatedPriceBRL / 50));
+      }
 
-      // 1. Filtragem Inicial (Segurança & Disponibilidade)
-      const eligiblePros = PROFESSIONALS_POOL.filter(pro => 
-        !rejectedIds.includes(pro.id) && // Não pode ter sido rejeitado na mesma sessão
-        pro.activeJobs < MAX_CAPACITY    // Não pode estar sobrecarregado
-      );
+      const response = await fetch('/api/ai/matchmaking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: selectedJob,
+          description: `ESCOPO DO JOB:\n${selectedJobData?.desc}\n\nBRIEFING DO CLIENTE:\n${briefingText || "Nenhum detalhe adicional fornecido."}\n\nPRAZO ESTIPULADO: ${deadline}\nCOMPLEXIDADE AVALIADA: ${pricingData?.complexity || 'Não avaliada'}\nVALOR (BRL): R$ ${pricingData?.estimatedPriceBRL || tokensValue * 50}`,
+          tokensValue: tokensValue,
+          rejectedIds: rejectedIds,
+          userId: localStorage.getItem('userId')
+        })
+      });
 
-      if (eligiblePros.length === 0) {
-        alert("Nenhum profissional disponível com este perfil no momento. Aumentaremos o raio de busca.");
-        setRejectedIds([]); // Reset de fallback
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "Erro ao alocar criativo via IA.");
         setStep('idle');
         return;
       }
 
-      // 2. Cálculo de Aderência (Scoring System)
-      const scoredPros = eligiblePros.map(pro => {
-        let score = 0;
+      // Converte os dados do DB para o formato esperado pelo UI
+      const creative = data.match.creative;
+      const bestMatch = {
+        id: creative.id,
+        name: creative.name,
+        level: creative.rank === 'veterano' ? 'Especialista' : 'Pleno/Júnior',
+        rating: creative.ratingScore,
+        portfolio: [
+          'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=800&q=80',
+          'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&q=80',
+          'https://images.unsplash.com/photo-1600132806370-bf17e65e942f?w=800&q=80'
+        ] // Imagens genéricas para demonstração do portfólio cego
+      };
 
-        // A) Skill Match (Peso: 50 pts)
-        if (pro.tags.includes(selectedJob)) score += 50;
-        else if (pro.tags.some(t => selectedJob.includes(t.split(' ')[0]))) score += 20; // Match Parcial
-
-        // B) Rating Match (Peso: 30 pts)
-        // Rating 5.0 = 30 pts, Rating 4.0 = 24 pts
-        score += (pro.rating / 5) * 30;
-
-        // C) Disponibilidade/Carga (Peso: 10 pts)
-        // Mais livre = Maior score
-        score += ((MAX_CAPACITY - pro.activeJobs) / MAX_CAPACITY) * 10;
-
-        // D) Histórico de Sucesso / SLA (Peso: 10 pts)
-        score += (pro.successRate / 100) * 10;
-
-        return { ...pro, finalScore: Math.round(score) };
-      });
-
-      // 3. Ordenação & Seleção
-      scoredPros.sort((a, b) => b.finalScore - a.finalScore);
-      
-      const bestMatch = scoredPros[0];
       setMatchedPro(bestMatch);
-      setMatchScore(bestMatch.finalScore);
+      setActiveJob(data.match);
+      // Simula um Match Score alto para o talento escolhido pela IA
+      setMatchScore(Math.floor(Math.random() * (99 - 88 + 1)) + 88); 
       setStep('portfolio_review');
 
-    }, 3500); // delay fake para simular processamento
+    } catch (error) {
+      console.error("Erro no Matchmaking", error);
+      alert("Falha de conexão com a IA.");
+      setStep('idle');
+    }
   };
 
-  const handleRejectPortfolio = () => {
+  const handleRejectPortfolio = async () => {
+    if (activeJob) {
+      try {
+        await fetch('/api/jobs/cancel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobId: activeJob.id })
+        });
+      } catch (e) {
+        console.error("Erro ao cancelar job", e);
+      }
+    }
+
     if (matchedPro) {
       setRejectedIds(prev => [...prev, matchedPro.id]);
     }
-    // Gira a roleta de novo ignorando os rejeitados
+    // Limpa o job ativo e gira a roleta de novo
+    setActiveJob(null);
     executeScan();
   };
 
@@ -262,42 +323,119 @@ function MatchmakingContent() {
 
             <div className="p-8 md:p-12">
               <p className="font-bold text-gray-600 text-lg mb-8 max-w-3xl">
-                Antes de alocarmos o especialista para <strong className="text-brutal-black uppercase bg-yellow-300 px-2">{selectedJob}</strong>, precisamos do seu <strong>Aceite Criptográfico</strong>. Ao congelar o escopo, você ativa o SLA e garante as regras de governança da plataforma.
+                Antes de acionarmos o motor de IA para achar o melhor especialista em <strong className="text-brutal-black uppercase bg-yellow-300 px-2">{selectedJob}</strong>, descreva exatamente o que você precisa.
               </p>
 
-              <div className="bg-gray-50 border-4 border-brutal-black p-6 mb-8 grid md:grid-cols-2 gap-6">
+              {/* Formulário de Briefing */}
+              <div className="bg-gray-50 border-4 border-brutal-black p-6 mb-8">
                 <div>
-                  <h4 className="font-black uppercase mb-4 text-sm text-gray-500 tracking-widest">Parâmetros de Início:</h4>
-                  <ul className="space-y-3 font-bold text-sm">
-                    <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Diretrizes (Brand Vault) anexadas.</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Fontes Oficiais anexadas.</li>
-                    <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> SLA máximo de 48 horas identificado.</li>
-                  </ul>
-                </div>
-                <div className="border-t-4 md:border-t-0 md:border-l-4 border-brutal-black pt-4 md:pt-0 md:pl-6">
-                  <h4 className="font-black uppercase mb-4 text-sm text-gray-500 tracking-widest">Políticas de Alteração:</h4>
-                  <ul className="space-y-3 font-bold text-sm">
-                    <li className="flex items-start gap-2"><Zap size={16} className="text-yellow-500 mt-1 shrink-0" /> <span><strong>Mudanças Comuns:</strong> Ajustes normais não são cobrados.</span></li>
-                    <li className="flex items-start gap-2"><Zap size={16} className="text-yellow-500 mt-1 shrink-0" /> <span><strong>Refatoração (3 por Job):</strong> Consumidas apenas se alterar &gt; 80% da arte.</span></li>
-                    <li className="flex items-start gap-2"><Shield size={16} className="text-red-600 mt-1 shrink-0" /> <span className="text-red-700"><strong>Pivotagem (Reset Fee):</strong> Cobrada apenas se mudar &gt; 50% quando o prazo acabar.</span></li>
-                  </ul>
+                  <label className="block font-black uppercase text-sm mb-2">Detalhe seu pedido:</label>
+                  <textarea 
+                    value={briefingText}
+                    onChange={(e) => setBriefingText(e.target.value)}
+                    placeholder="Ex: Quero uma logo minimalista para minha nova marca de roupas sustentáveis, nas cores verde escuro e areia..."
+                    className="w-full bg-white border-4 border-brutal-black p-4 font-bold text-gray-700 h-32 outline-none focus:border-royal transition-colors mb-6"
+                    disabled={!!pricingData}
+                  />
+
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block font-black uppercase text-sm mb-2">Prazo de Entrega:</label>
+                      <select
+                        value={deadline}
+                        onChange={(e) => setDeadline(e.target.value)}
+                        disabled={!!pricingData}
+                        className="w-full bg-white border-4 border-brutal-black p-4 font-bold text-gray-700 outline-none focus:border-royal"
+                      >
+                        <option value="24 horas">Urgentíssimo (24 horas) - Rush Fee</option>
+                        <option value="48 horas">Urgente (48 horas) - Rush Fee</option>
+                        <option value="7 dias">Padrão (7 dias)</option>
+                        <option value="15 dias">Flexível (15 dias) - Desconto</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-black uppercase text-sm mb-2">Imagens de Referência (Opcional):</label>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        disabled={!!pricingData}
+                        onChange={(e) => setBriefingFile(e.target.files?.[0] || null)}
+                        className="block w-full text-sm text-gray-500
+                          file:mr-4 file:py-2 file:px-4
+                          file:border-4 file:border-brutal-black
+                          file:text-sm file:font-black file:uppercase
+                          file:bg-white file:text-brutal-black
+                          hover:file:bg-gray-100 cursor-pointer"
+                      />
+                      {briefingFile && <p className="mt-2 text-xs font-bold text-green-600">Arquivo anexado: {briefingFile.name}</p>}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button 
-                  onClick={handleFreezeScope}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white px-8 py-5 font-black uppercase text-lg border-4 border-brutal-black text-center flex items-center justify-center gap-3 shadow-[4px_4px_0px_#0f172a] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all"
-                >
-                  Assinar e Congelar Escopo <ArrowRight size={24} />
-                </button>
-                <button 
-                  onClick={reset}
-                  className="w-full sm:w-auto bg-white text-gray-500 px-8 py-5 font-black uppercase text-sm hover:text-brutal-black transition-all border-4 border-brutal-black text-center hover:bg-gray-100"
-                >
-                  Cancelar Solicitação
-                </button>
-              </div>
+              {/* Parâmetros de Início e Checkout */}
+              {pricingData ? (
+                <div className="bg-yellow-50 border-4 border-brutal-black p-6 mb-8">
+                  <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-6">
+                    <div>
+                      <h4 className="font-black uppercase mb-2 text-sm tracking-widest flex items-center gap-2">
+                        <Zap size={18} className="text-yellow-600" /> Análise da IA Orçamentista:
+                      </h4>
+                      <p className="font-bold text-sm text-gray-700 bg-white p-4 border-2 border-brutal-black">
+                        "{pricingData.reasoning}"
+                      </p>
+                      <div className="mt-4 flex gap-4">
+                        <span className="bg-brutal-black text-white px-3 py-1 text-xs font-black uppercase">
+                          Complexidade: {pricingData.complexity}
+                        </span>
+                        <span className="bg-green-500 text-brutal-black px-3 py-1 text-xs font-black uppercase">
+                          Prazo: {deadline}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right w-full md:w-auto shrink-0 md:pl-6 md:border-l-4 border-brutal-black">
+                      <p className="font-black text-gray-500 uppercase text-xs">Valor do Serviço</p>
+                      <p className="text-5xl font-black tracking-tighter text-brutal-black">
+                        R$ {pricingData.estimatedPriceBRL},00
+                      </p>
+                      <p className="text-xs font-bold text-gray-400 uppercase mt-2">Valor Fixo & Protegido (Escrow)</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <button 
+                      onClick={() => executeScan()} 
+                      className="flex-1 bg-green-500 text-brutal-black px-8 py-5 font-black uppercase text-xl border-4 border-brutal-black shadow-[4px_4px_0px_#0f172a] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all flex items-center justify-center gap-3"
+                    >
+                      <Lock size={24} /> Pagar R$ {pricingData.estimatedPriceBRL} e Iniciar
+                    </button>
+                    <button 
+                      onClick={() => setPricingData(null)}
+                      className="w-full sm:w-auto bg-gray-100 text-gray-500 px-8 py-5 font-black uppercase text-sm border-4 border-brutal-black hover:text-brutal-black hover:bg-white transition-all text-center"
+                    >
+                      Refazer Briefing
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <button 
+                    onClick={calculatePricing}
+                    disabled={isCalculating}
+                    className="flex-1 bg-royal text-white px-8 py-5 font-black uppercase text-xl border-4 border-brutal-black shadow-[4px_4px_0px_#0f172a] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                  >
+                    {isCalculating ? <Loader2 className="animate-spin" size={24} /> : <Search size={24} />}
+                    Calcular Orçamento via IA
+                  </button>
+                  <button 
+                    onClick={reset}
+                    className="w-full sm:w-auto bg-gray-100 text-gray-500 px-8 py-5 font-black uppercase text-lg border-4 border-brutal-black hover:text-brutal-black hover:bg-white shadow-[4px_4px_0px_#0f172a] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all text-center"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -401,7 +539,7 @@ function MatchmakingContent() {
             </div>
 
             <div className="p-8 md:p-12 flex flex-col sm:flex-row gap-6">
-              <Link href="/cliente" className="flex-1 bg-brutal-black text-white px-8 py-6 font-black uppercase text-xl hover:bg-royal transition-colors border-4 border-brutal-black text-center flex items-center justify-center gap-3 shadow-[8px_8px_0px_#0f172a] hover:translate-y-1 hover:translate-x-1 hover:shadow-none">
+              <Link href={activeJob ? `/chat?id=${activeJob.id}` : "/cliente"} className="flex-1 bg-brutal-black text-white px-8 py-6 font-black uppercase text-xl hover:bg-royal transition-colors border-4 border-brutal-black text-center flex items-center justify-center gap-3 shadow-[8px_8px_0px_#0f172a] hover:translate-y-1 hover:translate-x-1 hover:shadow-none">
                 Acompanhar Entrega <ArrowRight size={24} />
               </Link>
               <button 

@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("empresa") // "empresa", "criativo", "admin"
+  rank      String   @default("novato") // "novato", "veterano" (Sistema de Apadrinhamento)
+  tokens    Int      @default(0)
+  
+  // Sistema de Avaliação (SLA & Rating)
+  ratingScore  Float @default(5.0)
+  reviewsCount Int   @default(0)
+
+  // Dados Cadastrais
+  birthDate    String?
+  document     String? // CPF ou CNPJ
+  emailVerified Boolean @default(false) // Sistema de Autenticação por E-mail
+
+  // Novo Sistema de Apadrinhamento Passivo (Skin in the Game)
+  isMentorOptIn Boolean @default(false) // Veterano aceitou os riscos e termos?
+  sponsorId     String? // Se for novato, quem é o veterano que apostou nele?
+  sponsor       User?   @relation("Sponsorship", fields: [sponsorId], references: [id])
+  sponsored     User[]  @relation("Sponsorship")
+
+  // Sistema de Auditoria de Entrada (Forensics)
+  portfolioUrl  String?
+  accountStatus String   @default("active") // pending_vetting, active, rejected
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  jobsAsClient   Job[] @relation("ClientJobs")
+  jobsAsCreative Job[] @relation("CreativeJobs")
+  brandVaults    BrandVault[]
+  messages       Message[]
+  
+  reviewsGiven    Review[] @relation("ReviewGiver")
+  reviewsReceived Review[] @relation("ReviewReceiver")
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  stars       Int      // 1 a 5
+  comment     String?
+  
+  jobId       String
+  job         Job      @relation(fields: [jobId], references: [id])
+
+  giverId     String
+  giver       User     @relation("ReviewGiver", fields: [giverId], references: [id])
+  
+  receiverId  String
+  receiver    User     @relation("ReviewReceiver", fields: [receiverId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
+model Transaction {
+  id        String   @id @default(cuid())
+  userId    String
+  plan      String
+  tokens    Int
+  amount    Float
+  status    String   @default("completed")
+  createdAt DateTime @default(now())
+}
+
+model Job {
+  id              String   @id @default(cuid())
+  title           String
+  description     String
+  tokensValue     Int
+  status          String   @default("open") // open, matching, active, reviewing, completed, disputed
+  
+  clientId        String
+  client          User     @relation("ClientJobs", fields: [clientId], references: [id])
+  
+  creativeId      String?
+  creative        User?    @relation("CreativeJobs", fields: [creativeId], references: [id])
+  
+  // Propriedade Intelectual (Opção C)
+  finalAssetUrl   String?
+  deliveryHash    String?
+  certificateUrl  String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  messages        Message[]
+  reviews         Review[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id])
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model BrandVault {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    User     @relation(fields: [clientId], references: [id])
+  assetUrl  String
+  assetType String   // pdf, image, rules
+  content   String?  // Regras extraídas pela IA
+  createdAt DateTime @default(now())
+}
