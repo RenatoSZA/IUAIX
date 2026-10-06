@@ -65,7 +65,7 @@ function WorkspaceChat() {
     
     channel.on('broadcast', { event: 'new-message' }, (payload: any) => {
       // Recebe mensagem do outro usuário via WebSocket instantâneo
-      setMessages((prev) => [...prev, payload.payload]);
+      setMessages((prev: any[]) => [...prev, payload.payload]);
     }).subscribe();
 
     channel.on('broadcast', { event: 'job-updated' }, (payload: any) => {
@@ -110,7 +110,7 @@ function WorkspaceChat() {
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
-        setMessages((prev) => [...prev, newMessage]);
+        setMessages((prev: any[]) => [...prev, newMessage]);
 
         supabase.channel(`job-${jobId}`).send({
           type: 'broadcast',
@@ -149,7 +149,7 @@ function WorkspaceChat() {
     };
 
     // 1. Atualiza a tela instantaneamente (Optimistic UI)
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((prev: any[]) => [...prev, newMessage]);
     const messageContent = inputMsg;
     setInputMsg("");
 
@@ -502,7 +502,7 @@ function WorkspaceChat() {
                          
                          // Dispara mensagem automática no chat informando o cliente
                          const systemMsg = "Trabalho final entregue. O documento de direitos autorais foi gerado e você tem até 48 horas para aprovar.";
-                         setMessages((prev) => [...prev, { id: Date.now(), text: systemMsg, sender: "system", time: "Agora" }]);
+                         setMessages((prev: any[]) => [...prev, { id: Date.now(), text: systemMsg, sender: "system", time: "Agora" }]);
                          
                          supabase.channel(`job-${jobId}`).send({
                            type: 'broadcast', event: 'new-message',
@@ -574,9 +574,9 @@ function WorkspaceChat() {
                <button 
                  onClick={() => {
                    setShowClientReviewModal(false);
-                   setJobContext((prev) => ({ ...prev, status: 'in_progress' }));
+                   setJobContext((prev: any) => ({ ...prev, status: 'in_progress' }));
                    const sysMsg = "O cliente solicitou mudanças na entrega. Por favor, revise e envie novamente.";
-                   setMessages((prev) => [...prev, { id: Date.now(), text: sysMsg, sender: "system", time: new Date().toLocaleTimeString() }]);
+                   setMessages((prev: any[]) => [...prev, { id: Date.now(), text: sysMsg, sender: "system", time: new Date().toLocaleTimeString() }]);
                    supabase.channel(`job-${jobId}`).send({
                      type: 'broadcast', event: 'new-message',
                      payload: { id: Date.now(), text: sysMsg, sender: "system", time: new Date().toLocaleTimeString() }
