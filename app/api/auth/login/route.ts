@@ -46,9 +46,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Credenciais inválidas' }, { status: 401 });
     }
 
+    /* --- VERIFICAÇÃO DE E-MAIL EM STANDBY ---
     if (!user.emailVerified) {
       return NextResponse.json({ error: 'Por favor, confirme seu e-mail antes de fazer login.' }, { status: 403 });
     }
+    */
 
     // 3. Verifica a Senha (Bcrypt Compare)
     const isPasswordValid = await bcrypt.compare(validatedData.password, user.password);

@@ -73,11 +73,14 @@ export async function POST(request: Request) {
       .sign(JWT_SECRET);
 
     // 6. Envia o E-mail de Verificação
+    // --- VERIFICAÇÃO DE E-MAIL EM STANDBY ---
+    /*
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `${headers().get('x-forwarded-proto') || 'http'}://${headers().get('host')}`;
     
     // Importa o utilitário dinamicamente para não quebrar a compilação do Next.js
     const { sendVerificationEmail } = await import('@/lib/mail');
     await sendVerificationEmail(user.email, verifyToken, baseUrl);
+    */
 
     // 7. Retorna sucesso sem definir cookies de login
     return NextResponse.json({ 

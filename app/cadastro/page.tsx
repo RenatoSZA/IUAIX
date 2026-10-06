@@ -269,15 +269,18 @@ export default function OnboardingCadastro() {
               <div className="w-32 h-32 bg-yellow-300 border-4 border-brutal-black rounded-full flex items-center justify-center mx-auto mb-8 shadow-brutal-dark">
                 <CheckCircle size={64} className="text-brutal-black" strokeWidth={3} />
               </div>
-              <h2 className="text-4xl md:text-5xl font-black uppercase mb-4 tracking-tight">Verifique seu E-mail</h2>
+              {/* --- VERIFICAÇÃO DE E-MAIL EM STANDBY --- */}
+              <h2 className="text-4xl md:text-5xl font-black uppercase mb-4 tracking-tight">Cadastro Concluído!</h2>
               <p className="text-gray-500 font-bold text-xl mb-6">
-                Para efetivar o cadastro e garantir a segurança B2B, enviamos um link de autenticação para <span className="text-brutal-black underline">{formData.email}</span>.
+                Sua conta foi criada com sucesso. Você já pode acessar a plataforma com <span className="text-brutal-black underline">{formData.email}</span>.
               </p>
               
+              {/* Alert removido
               <div className="bg-gray-50 border-4 border-brutal-black p-6 mb-8 text-left inline-block">
                 <p className="font-bold text-sm text-gray-600">⚠️ O link expira em 2 horas.</p>
                 <p className="font-bold text-sm text-gray-600">Verifique sua caixa de Spam se necessário.</p>
               </div>
+              */}
               <br/>
               <Link href="/login" className="inline-block bg-brutal-black text-white px-12 py-6 font-black uppercase text-xl hover:bg-royal transition-colors border-4 border-brutal-black shadow-[8px_8px_0px_#0f3cc9]">
                 Ir para o Login
