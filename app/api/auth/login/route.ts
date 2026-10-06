@@ -16,7 +16,7 @@ const limiter = rateLimit({
 const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
   password: z.string().min(1, "A senha é obrigatória"),
-  photoBase64: z.string().min(1, "A foto biométrica é obrigatória")
+  photoBase64: z.string().optional() // Biometria em standby
 });
 
 const JWT_SECRET = getJwtSecret();
@@ -58,9 +58,8 @@ export async function POST(request: Request) {
     }
 
     // 4. Validação "Biométrica" Simplificada (Algoritmo Determinístico)
-    // Em vez de usar IA pesada, validamos a integridade da imagem em Base64 e 
-    // confiamos na verificação de duplo fator padrão. 
-    // Para biometria real, futuramente deve-se usar a API nativa WebAuthn (FaceID/Windows Hello).
+    // --- BIOMETRIA EM STANDBY ---
+    /*
     const base64Data = validatedData.photoBase64.split(',')[1] || validatedData.photoBase64;
     
     // Algoritmo de validação de entropia mínima (Para garantir que não enviaram uma imagem em branco)
@@ -74,6 +73,7 @@ export async function POST(request: Request) {
     if (!base64Regex.test(base64Data.replace(/[^A-Za-z0-9+/=]/g, ''))) {
       return NextResponse.json({ error: 'Acesso Negado: Falha na validação de integridade da captura.' }, { status: 403 });
     }
+    */
 
     // 5. Gera JWT Assinado
     const token = await new SignJWT({ sub: user.id, role: user.role })

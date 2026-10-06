@@ -42,13 +42,16 @@ function LoginContent() {
       return;
     }
     setError('');
-    startCamera();
+    // startCamera();
+    // --- BIOMETRIA EM STANDBY ---
+    handleLogin();
   };
 
   const handleLogin = async () => {
     setLoading(true);
     setError('');
 
+    /* --- BIOMETRIA EM STANDBY ---
     let photoBase64 = '';
     if (videoRef.current && canvasRef.current) {
       const context = canvasRef.current.getContext('2d');
@@ -67,12 +70,13 @@ function LoginContent() {
     }
 
     stopCamera();
+    */
 
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, photoBase64 })
+        body: JSON.stringify({ email, password })
       });
 
       const data = await response.json();
@@ -103,7 +107,8 @@ function LoginContent() {
             IX
           </Link>
           <h1 className="text-3xl font-black uppercase tracking-tight">Acesso de Segurança</h1>
-          <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-2">Validação Biométrica IA</p>
+          {/* --- BIOMETRIA EM STANDBY --- */}
+          {/* <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-2">Validação Biométrica IA</p> */}
         </div>
 
         {error && (
@@ -142,9 +147,10 @@ function LoginContent() {
 
             <button 
               type="submit"
-              className="w-full bg-royal text-white border-4 border-brutal-black py-4 font-black uppercase text-xl shadow-[4px_4px_0px_#0f172a] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all flex justify-center items-center gap-3"
+              disabled={loading}
+              className="w-full bg-royal text-white border-4 border-brutal-black py-4 font-black uppercase text-xl shadow-[4px_4px_0px_#0f172a] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all flex justify-center items-center gap-3 disabled:opacity-50"
             >
-              Continuar <ArrowRight size={20} />
+              {loading ? 'Entrando...' : 'Entrar'} <ArrowRight size={20} />
             </button>
           </form>
         )}
