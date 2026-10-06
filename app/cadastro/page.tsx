@@ -33,7 +33,7 @@ export default function OnboardingCadastro() {
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#ffffff 2px, transparent 2px)', backgroundSize: '30px 30px' }}></div>
         
         <div className="relative z-10">
-          <Link href="/" className="inline-flex items-center gap-2 font-black text-xl tracking-tighter uppercase mb-16 hover:text-royal transition-colors">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 font-black text-xl tracking-tighter uppercase mb-16 hover:text-royal transition-colors">
             <div className="w-8 h-8 bg-royal border-2 border-white flex items-center justify-center text-white text-sm">IX</div>
             Iuaix
           </Link>

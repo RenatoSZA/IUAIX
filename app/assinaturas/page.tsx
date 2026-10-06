@@ -13,10 +13,10 @@ export default function Assinaturas() {
           <Link href="/" className="p-2 bg-gray-100 hover:bg-gray-200 transition-colors border-2 border-transparent hover:border-brutal-black">
             <ArrowLeft size={24} />
           </Link>
-          <div className="flex items-center gap-2 border-l-4 border-brutal-black pl-4">
+          <Link href="/dashboard" className="flex items-center gap-2 border-l-4 border-brutal-black pl-4 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-royal border-2 border-brutal-black flex items-center justify-center text-white font-black text-lg">IX</div>
             <span className="text-xl sm:text-2xl font-black uppercase tracking-tighter hidden sm:block">Iuaix</span>
-          </div>
+          </Link>
         </div>
         <div className="font-black uppercase tracking-widest text-xs sm:text-sm">
           Modelagem Financeira

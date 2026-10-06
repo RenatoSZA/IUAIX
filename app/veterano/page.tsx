@@ -12,7 +12,7 @@ export default function VeteranoDashboard() {
       {/* Navbar do Curador */}
       <nav className="bg-brutal-black text-white px-6 py-4 flex items-center justify-between sticky top-0 z-50 border-b-4 border-royal">
         <div className="flex items-center gap-4">
-          <Link href="/" className="p-2 bg-white/10 hover:bg-white/20 transition-colors border-2 border-transparent hover:border-white">
+          <Link href="/dashboard" className="p-2 bg-white/10 hover:bg-white/20 transition-colors border-2 border-transparent hover:border-white">
              <div className="w-8 h-8 bg-royal border-2 border-white flex items-center justify-center font-black text-xs">IX</div>
           </Link>
           <div className="border-l-4 border-royal pl-4">

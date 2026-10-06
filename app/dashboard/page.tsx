@@ -59,10 +59,10 @@ export default function Dashboard() {
       
       {/* Botão Hambúrguer Mobile */}
       <div className="md:hidden p-4 bg-white border-b-4 border-brutal-black flex justify-between items-center z-50 sticky top-0">
-        <div className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-royal border-2 border-brutal-black flex items-center justify-center text-white font-black text-sm">IX</div>
           <span className="font-black uppercase tracking-widest text-lg">Iuaix</span>
-        </div>
+        </Link>
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-brutal-black border-2 border-brutal-black p-2 hover:bg-yellow-300">
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -74,10 +74,10 @@ export default function Dashboard() {
         md:translate-x-0 transition-transform duration-300
         w-full md:w-72 bg-gray-100 border-r-4 border-brutal-black flex flex-col fixed md:sticky top-0 h-screen z-40
       `}>
-        <div className="p-8 hidden md:flex items-center gap-3 border-b-4 border-brutal-black bg-white">
+        <Link href="/dashboard" className="p-8 hidden md:flex items-center gap-3 border-b-4 border-brutal-black bg-white cursor-pointer hover:bg-gray-50 transition-colors">
           <div className="w-10 h-10 bg-royal border-4 border-brutal-black flex items-center justify-center text-white font-black text-lg shadow-brutal-sm">IX</div>
           <span className="text-2xl font-black uppercase tracking-widest">Iuaix</span>
-        </div>
+        </Link>
         
         <div className="flex-1 overflow-y-auto px-6 py-8">
           <nav className="flex flex-col gap-4">

@@ -103,7 +103,7 @@ function LoginContent() {
       <div className="w-full max-w-md bg-white text-brutal-black border-4 border-white shadow-[16px_16px_0px_#0f3cc9] p-8 md:p-12 animate-in fade-in zoom-in-95 duration-500">
         
         <div className="mb-10 text-center">
-          <Link href="/" className="inline-flex items-center justify-center w-16 h-16 bg-royal border-4 border-brutal-black text-white font-black text-2xl shadow-brutal-sm hover:translate-y-1 hover:shadow-none transition-all mb-6">
+          <Link href="/dashboard" className="inline-flex items-center justify-center w-16 h-16 bg-royal border-4 border-brutal-black text-white font-black text-2xl shadow-brutal-sm hover:translate-y-1 hover:shadow-none transition-all mb-6">
             IX
           </Link>
           <h1 className="text-3xl font-black uppercase tracking-tight">Acesso de Segurança</h1>
