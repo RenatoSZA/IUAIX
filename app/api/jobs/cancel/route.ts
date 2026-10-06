@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     const job = await prisma.job.findUnique({ where: { id: jobId } });
     if (!job) return NextResponse.json({ error: 'Job não encontrado' }, { status: 404 });
-    if (job.clientId !== clientId) return NextResponse.json({ error: 'Não autorizado' }, { status: 403 });
+    if (job.clientId !== clientId && job.creativeId !== clientId) return NextResponse.json({ error: 'Não autorizado' }, { status: 403 });
 
     await prisma.job.update({
       where: { id: jobId },

@@ -71,6 +71,10 @@ function WorkspaceChat() {
     channel.on('broadcast', { event: 'job-updated' }, (payload: any) => {
       if (payload.payload?.job) {
         setJobContext(payload.payload.job);
+        if (payload.payload.job.status === 'completed' || payload.payload.job.status === 'canceled') {
+          alert(payload.payload.job.status === 'completed' ? 'O job foi finalizado!' : 'O job foi cancelado pelo outro usuário.');
+          router.push('/dashboard');
+        }
       }
     }).subscribe();
 
@@ -171,6 +175,30 @@ function WorkspaceChat() {
       console.error('Erro ao salvar no banco:', e);
     }
   };
+  const handleCancelJob = async () => {
+    if (!confirm("Tem certeza que deseja cancelar este job? Esta ação é irreversível.")) return;
+    try {
+      const res = await fetch('/api/jobs/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId })
+      });
+      if (res.ok) {
+        alert("Job cancelado com sucesso.");
+        router.push('/dashboard');
+        
+        supabase.channel(`job-${jobId}`).send({
+          type: 'broadcast', event: 'job-updated',
+          payload: { job: { ...jobContext, status: 'canceled' } }
+        });
+      } else {
+        alert("Erro ao cancelar o job.");
+      }
+    } catch (e) {
+      alert("Erro de conexão ao cancelar.");
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans text-brutal-black flex flex-col">
@@ -197,6 +225,14 @@ function WorkspaceChat() {
         </div>
 
         <div className="flex gap-4">
+          {jobContext?.status !== 'completed' && jobContext?.status !== 'canceled' && (
+            <button 
+              onClick={handleCancelJob}
+              className="hidden md:flex bg-red-500 text-white border-4 border-brutal-black px-4 py-2 font-black uppercase text-sm hover:bg-red-600 transition-colors shadow-brutal-sm items-center gap-2"
+            >
+              Cancelar Job
+            </button>
+          )}
           {role === 'criativo' && jobContext?.status !== 'reviewing' && jobContext?.status !== 'completed' && (
             <button 
               onClick={() => setShowDeliveryModal(true)}
@@ -402,8 +438,17 @@ function WorkspaceChat() {
                            body: JSON.stringify({ jobId: jobId, stars: star, comment: "Ótima experiência" })
                          });
                          if(res.ok) {
-                           alert('Sua avaliação foi salva! Muito obrigado.');
-                         }
+                             alert('Sua avaliação foi salva! O job foi finalizado com sucesso.');
+                             const sysMsg = "O cliente avaliou o trabalho e o job foi finalizado.";
+                             setMessages((prev: any[]) => [...prev, { id: Date.now(), text: sysMsg, sender: "system", time: new Date().toLocaleTimeString() }]);
+                             
+                             supabase.channel(`job-${jobId}`).send({
+                               type: 'broadcast', event: 'job-updated',
+                               payload: { job: { ...jobContext, status: 'completed' } }
+                             });
+                             
+                             router.push('/dashboard');
+                           }
                        } catch(e) {
                          alert('Erro ao enviar avaliação.');
                        }
