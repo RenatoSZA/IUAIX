@@ -26,25 +26,25 @@ export default function Home() {
           </div>
         </div>
         
-        <div className="flex items-center gap-2 md:gap-4 text-sm font-black uppercase tracking-widest">
-          <Link href="/login" className="hidden md:block hover:bg-gray-100 px-3 py-2 border-2 border-transparent hover:border-brutal-black transition-all">
-            Fazer login
-          </Link>
-          <Link href="/cadastro" className="bg-brutal-black text-white px-6 py-3 border-4 border-brutal-black hover:bg-royal hover:text-white transition-colors shadow-brutal-sm hover:translate-y-1 hover:translate-x-1 hover:shadow-none">
-            Cadastre-se
-          </Link>
-          
-          <button className="lg:hidden p-2 border-2 border-brutal-black bg-gray-100" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
+        <div className="flex items-center gap-1 md:gap-4 text-xs md:text-sm font-black uppercase tracking-widest">
+            <Link href="/login" className="hover:bg-gray-100 px-2 py-2 md:px-3 border-2 border-transparent hover:border-brutal-black transition-all">
+              Login
+            </Link>
+            <Link href="/cadastro" className="bg-brutal-black text-white px-3 py-2 md:px-6 md:py-3 border-4 border-brutal-black hover:bg-royal hover:text-white transition-colors shadow-brutal-sm hover:translate-y-1 hover:translate-x-1 hover:shadow-none">
+              Cadastre-se
+            </Link>
+            
+            <button className="lg:hidden p-1 md:p-2 border-2 border-brutal-black bg-gray-100" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="absolute top-full left-0 w-full bg-white border-b-4 border-t-4 border-brutal-black p-4 flex flex-col gap-2 lg:hidden font-black uppercase">
-            <Link href="/assinaturas" className="p-4 border-2 border-transparent hover:border-brutal-black hover:bg-gray-50">Preços</Link>
-            <Link href="/cadastro" className="p-4 border-2 border-transparent hover:border-brutal-black hover:bg-gray-50">Trabalhe Conosco</Link>
             <Link href="/login" className="p-4 border-2 border-transparent hover:border-brutal-black hover:bg-gray-50">Fazer login</Link>
+              <Link href="/assinaturas" className="p-4 border-2 border-transparent hover:border-brutal-black hover:bg-gray-50">Preços</Link>
+              <Link href="/cadastro" className="p-4 border-2 border-transparent hover:border-brutal-black hover:bg-gray-50">Trabalhe Conosco</Link>
           </div>
         )}
       </nav>
