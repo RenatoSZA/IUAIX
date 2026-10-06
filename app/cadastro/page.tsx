@@ -67,9 +67,10 @@ export default function OnboardingCadastro() {
       </div>
 
       {/* Coluna Direita - Formulário Dinâmico */}
-      <div className="flex-1 p-8 md:p-16 relative flex items-center justify-center">
+      <div className="flex-1 relative flex flex-col h-screen overflow-hidden">
         
-        <div className="w-full max-w-xl pb-24"> {/* pb-24 para compensar footer */}
+        <div className="flex-1 overflow-y-auto p-8 md:p-16 flex items-center justify-center">
+          <div className="w-full max-w-xl my-auto pb-12">
           
           {/* Indicador de Passos Brutalista */}
           {step < 5 && (
@@ -288,9 +289,12 @@ export default function OnboardingCadastro() {
             </div>
           )}
 
-          {/* Footer de Navegação */}
-          {step < 5 && (
-            <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 flex justify-between items-center bg-white border-t-4 border-brutal-black">
+          </div>
+        </div>
+
+        {/* Footer de Navegação */}
+        {step < 5 && (
+          <div className="w-full p-6 md:p-8 flex justify-between items-center bg-white border-t-4 border-brutal-black shrink-0">
               {step > 1 ? (
                 <button onClick={handlePrev} className="flex items-center gap-2 font-black uppercase tracking-widest text-sm hover:text-royal transition-colors">
                   <ArrowLeft size={16} /> Voltar
@@ -346,8 +350,6 @@ export default function OnboardingCadastro() {
               )}
             </div>
           )}
-
-        </div>
       </div>
 
     </div>
