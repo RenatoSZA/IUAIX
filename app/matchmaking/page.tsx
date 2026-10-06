@@ -1,4 +1,5 @@
 "use client";
+import { supabase } from '@/lib/supabase';
 import React, { useState, useEffect, Suspense } from 'react';
 import { Search, Zap, Clock, Shield, CheckCircle, ArrowLeft, Loader2, ArrowRight, ShieldAlert, Star, X, Lock } from 'lucide-react';
 import Link from 'next/link';
@@ -121,6 +122,22 @@ function MatchmakingContent() {
       setIsAuthorized(true);
     }
   }, [router]);
+
+  useEffect(() => {
+    if (activeJob && step === 'matched') {
+      const channel = supabase.channel(`job-${activeJob.id}`);
+      channel.on('broadcast', { event: 'job-updated' }, (payload: any) => {
+        if (payload.payload?.job?.status === 'canceled') {
+           alert("O especialista selecionado não está disponível no momento. Realocando automaticamente para outro talento de mesmo nível...");
+           handleRejectPortfolio();
+        }
+      }).subscribe();
+      
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [activeJob, step]);
 
   useEffect(() => {
     // Ler os inputs do form da Landing Page

@@ -1,4 +1,5 @@
 ﻿"use client";
+import { supabase } from '@/lib/supabase';
 import React, { useState, useEffect } from 'react';
 import { Zap, Clock, ShieldAlert, CheckCircle, ArrowRight, XCircle } from 'lucide-react';
 import Link from 'next/link';
@@ -81,6 +82,27 @@ export default function RadarOperacional() {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+    const handleReject = async () => {
+    if (!activeJob) return;
+    try {
+      await fetch('/api/jobs/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId: activeJob.id })
+      });
+      
+      supabase.channel(`job-${activeJob.id}`).send({
+        type: 'broadcast', event: 'job-updated',
+        payload: { job: { id: activeJob.id, status: 'canceled' } }
+      });
+      
+      setStatus('missed');
+    } catch (e) {
+      console.error(e);
+      setStatus('missed');
+    }
   };
 
   const handleAccept = async () => {
@@ -207,7 +229,7 @@ export default function RadarOperacional() {
                   <CheckCircle size={20} /> Aceitar OperaÃ§Ã£o
                 </button>
                 <button 
-                  onClick={() => setStatus('missed')}
+                  onClick={handleReject}
                   className="bg-gray-200 text-gray-500 px-6 py-4 font-black uppercase hover:bg-red-100 hover:text-red-600 transition-colors border-2 border-transparent hover:border-red-600 flex items-center justify-center"
                 >
                   Recusar
