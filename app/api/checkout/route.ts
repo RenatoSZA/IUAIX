@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-// Inicializa o Stripe (Só vai funcionar se tiver a chave no .env)
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
-
 export async function POST(request: Request) {
   try {
     // Se não tiver chave configurada, retorna um aviso para o Front-end usar o modo de simulação
     if (!process.env.STRIPE_SECRET_KEY) {
       return NextResponse.json({ error: 'STRIPE_KEYS_MISSING', message: 'Modo Simulação Ativo' }, { status: 400 });
     }
+
+    // Inicializa o Stripe (Só vai funcionar se tiver a chave no .env)
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
     const body = await request.json();
     const { plan, tokens, amount } = body;
